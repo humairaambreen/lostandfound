@@ -1,0 +1,233 @@
+.heart-svg {
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform 0.18s cubic-bezier(.4,2,.6,1), color 0.18s;
+  filter: none;
+}
+.heart-svg .heart-shape {
+  fill: #fff;
+  stroke: #bbb;
+  stroke-width: 1.5;
+  transition: fill 0.18s, stroke 0.18s, filter 0.18s;
+  filter: none;
+}
+.like-btn.liked .heart-svg .heart-shape {
+  fill: #FF8DAA;
+  stroke: #FF8DAA;
+  filter: drop-shadow(0 2px 8px #FF8DAA33);
+}
+.heart-svg.pop {
+  animation: pop-heart 0.35s cubic-bezier(.4,2,.6,1);
+}
+@keyframes pop-heart {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  60% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.like-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.15rem;
+  margin-top: 0.7em;
+  color: #bbb;
+  transition: color 0.18s;
+  padding: 0;
+}
+.like-btn .heart {
+  font-size: 1.3em;
+  transition: color 0.18s;
+}
+.like-btn.liked .heart {
+  color: #e25555;
+  text-shadow: 0 1px 6px rgba(226,85,85,0.10);
+}
+.like-btn.liked {
+  color: #e25555;
+}
+.like-btn .like-count {
+  font-size: 1em;
+  font-weight: 500;
+  color: #888;
+  margin-left: 0.2em;
+}
+/* End of feed message */
+.end-of-feed {
+  text-align: center;
+  color: var(--color-primary);
+  font-size: 1.05rem;
+  margin: 2.2rem 0 4.5rem 0;
+  opacity: 0.7;
+  letter-spacing: 0.2px;
+  font-weight: 500;
+}
+:root {
+  /* Core palette */
+  --color-primary: #A4C3A2;     /* soft mint green */
+  --color-secondary: #EAE7D6;   /* warm cream */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-shadow: rgba(0, 0, 0, 0.05);
+}
+
+/* Reset & Global */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--color-secondary);
+  color: var(--color-black);
+  min-height: 100vh;
+}
+
+/* Container */
+.container {
+  max-width: 420px;
+  margin: 40px auto 100px;
+  background: var(--color-white);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 12px var(--color-shadow);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2.3rem;
+  margin: 0;
+  color: var(--color-primary);
+  font-family: 'Dancing Script', cursive;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 1rem 0 0.5rem;
+  text-align: center;
+  color: var(--color-primary);
+}
+
+/* Form */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--color-secondary);
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+}
+
+input[type="text"],
+textarea,
+input[type="file"] {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  outline: none;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary);
+}
+
+button[type="submit"] {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  opacity: 0.9;
+}
+
+/* Feed */
+#feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.item {
+  background: var(--color-white);
+  border-radius: 1rem;
+  padding: 1.5rem 1.3rem 1.3rem 1.3rem;
+  margin: 0 12px;
+  box-shadow: 0 2px 8px var(--color-shadow);
+  border: 1px solid var(--color-border);
+}
+
+.item .meta {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.item .timestamp {
+  font-size: 0.875rem;
+  color: rgba(0,0,0,0.6);
+}
+
+.item img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+/* Tabs */
+.bottom-tabs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--color-white);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -2px 8px var(--color-shadow);
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  color: var(--color-black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tab-section {
+  min-height: 300px;
+}
+
+@media (max-width: 600px) {
+  .container {
+    margin-bottom: 120px;
+  }
+}

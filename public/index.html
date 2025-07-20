@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lost and Found</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1 style="text-align:center; margin-top: 32px; margin-bottom: 0.5em; color: #1a2233; font-size: 2.1rem; font-weight: 700; letter-spacing: -1px;">Lost and Found</h1>
+  <div id="tab-content">
+    <div id="feedTab" class="tab-section">
+      
+      <div id="feed"></div>
+      <div id="end-of-feed" class="end-of-feed">This is the end of the feed</div>
+    </div>
+    <div id="uploadTab" class="tab-section" style="display:none;">
+      <form id="itemForm">
+        <input type="text" id="name" placeholder="Your Name" required />
+        <input type="text" id="number" placeholder="Your Number" required />
+        <textarea id="description" placeholder="Item Description" required></textarea>
+        <input type="file" id="photo" accept="image/*" required />
+        <button type="submit">Submit Item</button>
+      </form>
+    </div>
+  </div>
+  <nav class="bottom-tabs">
+    <button class="tab-btn active" id="feedsTabBtn" aria-label="Feeds"><span>Feeds</span></button>
+    <button class="tab-btn" id="uploadTabBtn" aria-label="Upload"><span>Upload</span></button>
+  </nav>
+  <script>
+    // Tab switching logic
+    const feedsTabBtn = document.getElementById('feedsTabBtn');
+    const uploadTabBtn = document.getElementById('uploadTabBtn');
+    const feedTab = document.getElementById('feedTab');
+    const uploadTab = document.getElementById('uploadTab');
+    feedsTabBtn.onclick = () => {
+      feedsTabBtn.classList.add('active');
+      uploadTabBtn.classList.remove('active');
+      feedTab.style.display = '';
+      uploadTab.style.display = 'none';
+    };
+    uploadTabBtn.onclick = () => {
+      uploadTabBtn.classList.add('active');
+      feedsTabBtn.classList.remove('active');
+      uploadTab.style.display = '';
+      feedTab.style.display = 'none';
+    };
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
