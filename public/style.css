@@ -222,8 +222,15 @@ button[type="submit"]:hover {
   font-weight: 600;
 }
 
-.tab-section {
-  min-height: 300px;
+/* Remove blue highlight on tap for buttons and interactive elements on mobile */
+.like-btn, button, .tab-btn {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.item:active, .like-btn:active, button:active, .tab-btn:active {
+  outline: none;
+  box-shadow: none;
 }
 
 @media (max-width: 600px) {
