@@ -93,7 +93,7 @@ async function loadFeed(showSkeleton = true) {
       const likeCount = item.likes || 0;
       // Comment section placeholder
       return `
-        <div class="item" data-id="${item._id}" style="cursor:pointer;">
+                <div class="item" data-id="${item._id}" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
           <div class="meta"><b>${item.name}</b> (${item.number})</div>
           <div>${item.description}</div>
           ${item.photo ? `<img src="${item.photo}" alt="item photo" />` : ''}
@@ -106,8 +106,8 @@ async function loadFeed(showSkeleton = true) {
             </span>
             <span class="like-count">${likeCount}</span>
           </button>
-          <div class="comments-section">
-            <div class="comments-list" id="comments-${item._id}"></div>
+          <div class="comments-section" style="margin-top:6px;">
+            <div class="comments-count" id="comments-count-${item._id}" style="color:#888;font-size:0.92em;text-align:right;"></div>
           </div>
         </div>
       `;
@@ -183,24 +183,21 @@ async function loadFeed(showSkeleton = true) {
       };
     });
 
-    // Load recent comments for each item
+    // Load comment count for each item
     items.forEach(async item => {
-      const commentsList = document.getElementById('comments-' + item._id);
-      if (commentsList) {
-            commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">Loading comments...</div>';
+      const commentsCountDiv = document.getElementById('comments-count-' + item._id);
+      if (commentsCountDiv) {
+        commentsCountDiv.textContent = 'Loading...';
         try {
-          const res = await fetch(`/api/items/${item._id}/recent-comments`);
+          const res = await fetch(`/api/items/${item._id}/comments`);
           const comments = await res.json();
-          if (Array.isArray(comments) && comments.length > 0) {
-                commentsList.innerHTML = comments.map(c => {
-                  const date = c.timestamp ? new Date(c.timestamp).toLocaleDateString() : '';
-                  return `<span style="font-weight:500;color:#222;font-size:0.82em;margin-right:4px;">${c.name}:</span><span style="color:#444;font-size:0.82em;">${c.text}</span><span style="color:#bbb;font-size:0.75em;margin-left:6px;">${date}</span><br />`;
-                }).join('');
+          if (Array.isArray(comments)) {
+            commentsCountDiv.textContent = comments.length + ' comment' + (comments.length !== 1 ? 's' : '');
           } else {
-            commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">No comments yet.</div>';
+            commentsCountDiv.textContent = '0 comments';
           }
         } catch {
-          commentsList.innerHTML = '<div style="color:#f55;font-size:0.95em;">Error loading comments.</div>';
+          commentsCountDiv.textContent = 'Error';
         }
       }
     });
