@@ -1,7 +1,3 @@
-
-
-
-
 const form = document.getElementById('itemForm');
 const feed = document.getElementById('feed');
 const submitBtn = form.querySelector('button[type="submit"]');
@@ -46,26 +42,7 @@ form.addEventListener('submit', async (e) => {
 
 
 
-function getLikeKey(postId) {
-  return `like_${postId}`;
-}
-
-function isLiked(postId) {
-  return localStorage.getItem(getLikeKey(postId)) === '1';
-}
-
-function setLiked(postId, liked) {
-  if (liked) localStorage.setItem(getLikeKey(postId), '1');
-  else localStorage.removeItem(getLikeKey(postId));
-}
-
-function updateLike(postId, liked) {
-  const likeRef = db.ref('items/' + postId + '/likes');
-  likeRef.transaction(current => {
-    if (liked) return (current || 0) + 1;
-    else return Math.max((current || 1) - 1, 0);
-  });
-}
+// ...removed unused local like logic...
 
 async function loadFeed() {
   try {
@@ -74,15 +51,58 @@ async function loadFeed() {
     feed.innerHTML = items.map(item => {
       const date = item.timestamp ? new Date(item.timestamp) : null;
       const dateString = date ? date.toLocaleString() : '';
+      const likeCount = item.likes || 0;
       return `
         <div class="item" data-id="${item._id}">
           <div class="meta"><b>${item.name}</b> (${item.number})</div>
           <div>${item.description}</div>
           ${item.photo ? `<img src="${item.photo}" alt="item photo" />` : ''}
           <div class="timestamp">${dateString ? `Uploaded: ${dateString}` : ''}</div>
+          <button class="like-btn" aria-label="Like post" type="button">
+            <span class="heart-svg" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path class="heart-shape" d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z"/>
+              </svg>
+            </span>
+            <span class="like-count">${likeCount}</span>
+          </button>
         </div>
       `;
     }).join('');
+    // Add event listeners for like buttons
+    document.querySelectorAll('.like-btn').forEach((btn, idx) => {
+      const postId = items[idx]._id;
+      const liked = localStorage.getItem('liked_' + postId) === '1';
+      if (liked) btn.classList.add('liked');
+      else btn.classList.remove('liked');
+      btn.onclick = async () => {
+        try {
+          if (!liked) {
+            await fetch(`/api/items/${postId}/like`, {
+              method: 'POST',
+              headers: { 'x-liked': '0' }
+            });
+            localStorage.setItem('liked_' + postId, '1');
+          } else {
+            await fetch(`/api/items/${postId}/unlike`, {
+              method: 'POST',
+              headers: { 'x-liked': '1' }
+            });
+            localStorage.removeItem('liked_' + postId);
+          }
+          loadFeed();
+        } catch (err) {
+          alert('Error updating like.');
+        }
+        // Animate heart
+        const heart = btn.querySelector('.heart-svg');
+        if (heart) {
+          heart.classList.remove('pop');
+          void heart.offsetWidth;
+          heart.classList.add('pop');
+        }
+      };
+    });
   } catch (err) {
     feed.innerHTML = '<div>Error loading feed.</div>';
   }

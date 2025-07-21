@@ -54,6 +54,32 @@ app.get('/api/items', async (req, res) => {
   }
 });
 
+// Like endpoint for items
+app.post('/api/items/:id/like', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const likeRef = db.ref('items/' + postId + '/likes');
+    await likeRef.transaction(current => (current || 0) + 1);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating like:', err);
+    res.status(500).json({ error: 'Failed to update like' });
+  }
+});
+
+// Unlike endpoint for items
+app.post('/api/items/:id/unlike', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const likeRef = db.ref('items/' + postId + '/likes');
+    await likeRef.transaction(current => Math.max((current || 1) - 1, 0));
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating unlike:', err);
+    res.status(500).json({ error: 'Failed to update unlike' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
