@@ -190,13 +190,13 @@ button[type="submit"]:hover {
 
 /* Make post images square and centered */
 .item img {
-  width: 340px;
-  height: 340px;
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 1/1;
   object-fit: cover;
   border-radius: 1rem;
   display: block;
   margin: 0.75rem auto;
-  max-width: 100%;
 }
 
 /* Tabs */
@@ -262,8 +262,9 @@ button[type="submit"]:hover {
 }
 /* Make skeleton image box even bigger and centered */
 .skeleton-img {
-  height: 340px;
-  width: 340px;
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 1/1;
   margin: 1.5em auto;
   display: block;
   border-radius: 1rem;
@@ -295,5 +296,8 @@ button[type="submit"]:hover {
 @media (max-width: 600px) {
   .container {
     margin-bottom: 120px;
+  }
+  .item img, .skeleton-img {
+    max-width: 90vw;
   }
 }
