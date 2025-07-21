@@ -97,6 +97,28 @@ app.post('/api/items/:id/comments', async (req, res) => {
 });
 
 // Get comments for an item
+// Get recent comments for an item (last 3)
+app.get('/api/items/:id/recent-comments', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    // Check if item exists
+    const itemSnapshot = await db.ref('items/' + postId).once('value');
+    if (!itemSnapshot.exists()) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    const snapshot = await db.ref('items/' + postId + '/comments').orderByChild('timestamp').limitToLast(3).once('value');
+    const comments = [];
+    snapshot.forEach(child => {
+      const val = child.val();
+      val._id = child.key;
+      comments.push(val);
+    });
+    comments.reverse();
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch recent comments' });
+  }
+});
 app.get('/api/items/:id/comments', async (req, res) => {
   try {
     const postId = req.params.id;

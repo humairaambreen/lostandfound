@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Details</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .post-container { max-width: 420px; margin: 40px auto 100px; background: #fff; border-radius: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 2rem 1.5rem; }
+    .back-btn { margin-bottom: 1em; background: var(--color-primary); color: #fff; border: none; border-radius: 0.7em; padding: 0.5em 1.2em; cursor: pointer; font-size: 1em; }
+    .back-btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="post-container">
+    <button class="back-btn" onclick="window.history.back()">← Back to Feed</button>
+    <div id="post-details"></div>
+    <h2>Comments</h2>
+    <div id="comments-list"></div>
+    <form id="commentForm" style="margin-top:1em;">
+      <input type="text" id="commentName" placeholder="Your Name" required style="margin-right:0.5em;" />
+      <input type="text" id="commentText" placeholder="Add a comment..." required />
+      <button type="submit">Post</button>
+    </form>
+  </div>
+  <script src="post.js"></script>
+</body>
+</html>

@@ -93,7 +93,7 @@ async function loadFeed(showSkeleton = true) {
       const likeCount = item.likes || 0;
       // Comment section placeholder
       return `
-        <div class="item" data-id="${item._id}">
+        <div class="item" data-id="${item._id}" style="cursor:pointer;">
           <div class="meta"><b>${item.name}</b> (${item.number})</div>
           <div>${item.description}</div>
           ${item.photo ? `<img src="${item.photo}" alt="item photo" />` : ''}
@@ -108,15 +108,19 @@ async function loadFeed(showSkeleton = true) {
           </button>
           <div class="comments-section">
             <div class="comments-list" id="comments-${item._id}"></div>
-            <form class="comment-form" data-id="${item._id}">
-              <input type="text" name="name" placeholder="Your Name" required style="margin-right:0.5em;" />
-              <input type="text" name="text" placeholder="Add a comment..." required />
-              <button type="submit">Post</button>
-            </form>
           </div>
         </div>
       `;
     }).join('');
+    // Add click handler to each item to open post.html?id=POST_ID
+    document.querySelectorAll('.item').forEach(itemDiv => {
+      const postId = itemDiv.getAttribute('data-id');
+      itemDiv.addEventListener('click', function(e) {
+        // Prevent click on like button or comment form from triggering navigation
+        if (e.target.closest('.like-btn') || e.target.closest('.comment-form')) return;
+        window.location.href = `post.html?id=${postId}`;
+      });
+    });
 
     // Add event listeners for like buttons
     document.querySelectorAll('.like-btn').forEach((btn, idx) => {
@@ -179,19 +183,19 @@ async function loadFeed(showSkeleton = true) {
       };
     });
 
-    // Load comments for each item
+    // Load recent comments for each item
     items.forEach(async item => {
       const commentsList = document.getElementById('comments-' + item._id);
       if (commentsList) {
-        commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">Loading comments...</div>';
+            commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">Loading comments...</div>';
         try {
-          const res = await fetch(`/api/items/${item._id}/comments`);
+          const res = await fetch(`/api/items/${item._id}/recent-comments`);
           const comments = await res.json();
           if (Array.isArray(comments) && comments.length > 0) {
-            commentsList.innerHTML = comments.map(c => {
-              const date = c.timestamp ? new Date(c.timestamp).toLocaleString() : '';
-              return `<div class="comment"><b>${c.name}</b>: ${c.text} <span class="comment-date">${date}</span></div>`;
-            }).join('');
+                commentsList.innerHTML = comments.map(c => {
+                  const date = c.timestamp ? new Date(c.timestamp).toLocaleDateString() : '';
+                  return `<span style="font-weight:500;color:#222;font-size:0.82em;margin-right:4px;">${c.name}:</span><span style="color:#444;font-size:0.82em;">${c.text}</span><span style="color:#bbb;font-size:0.75em;margin-left:6px;">${date}</span><br />`;
+                }).join('');
           } else {
             commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">No comments yet.</div>';
           }
@@ -199,6 +203,14 @@ async function loadFeed(showSkeleton = true) {
           commentsList.innerHTML = '<div style="color:#f55;font-size:0.95em;">Error loading comments.</div>';
         }
       }
+    });
+    // Add click handler for 'View all comments' buttons
+    document.querySelectorAll('.view-comments-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const postId = btn.getAttribute('data-id');
+        window.location.href = `post.html?id=${postId}`;
+      });
     });
 
     // Handle comment form submission
@@ -239,10 +251,11 @@ async function loadFeed(showSkeleton = true) {
           form.querySelector('button[type="submit"]').disabled = false;
         }
       });
-    });
+
+    }); // End of comment form submission handler
   } catch (err) {
     feed.innerHTML = '<div>Error loading feed.</div>';
   }
-}
+} // End of loadFeed
 
 window.onload = loadFeed;
