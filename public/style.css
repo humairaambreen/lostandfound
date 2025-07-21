@@ -102,10 +102,14 @@ h1 {
   text-align: center;
   font-size: 2.3rem;
   margin: 0;
-  color: var(--color-primary);
+  color: #232a34;
   font-family: 'Dancing Script', cursive;
   font-weight: 700;
   letter-spacing: 0.5px;
+  text-shadow:
+    0 8px 32px #A4C3A2cc,
+    0 2px 8px #A4C3A2bb,
+    0 0px 2px #A4C3A2;
 }
 
 h2 {
@@ -134,6 +138,7 @@ input[type="file"] {
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   outline: none;
+  font-family: 'Poppins', sans-serif;
 }
 
 input:focus,
@@ -170,6 +175,7 @@ button[type="submit"]:hover {
   margin: 0 12px;
   box-shadow: 0 2px 8px var(--color-shadow);
   border: 1px solid var(--color-border);
+  font-family: 'Poppins', sans-serif;
 }
 
 .item .meta {
