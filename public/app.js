@@ -85,27 +85,27 @@ async function loadFeed(showSkeleton = true) {
     // Add event listeners for like buttons
     document.querySelectorAll('.like-btn').forEach((btn, idx) => {
       const postId = items[idx]._id;
-      const liked = localStorage.getItem('liked_' + postId) === '1';
-      if (liked) btn.classList.add('liked');
+      const likeCountSpan = btn.querySelector('.like-count');
+      const getLiked = () => localStorage.getItem('liked_' + postId) === '1';
+      const setLiked = (val) => {
+        if (val) localStorage.setItem('liked_' + postId, '1');
+        else localStorage.removeItem('liked_' + postId);
+      };
+      // Initial state
+      if (getLiked()) btn.classList.add('liked');
       else btn.classList.remove('liked');
       btn.onclick = async () => {
-        try {
-          if (!liked) {
-            await fetch(`/api/items/${postId}/like`, {
-              method: 'POST',
-              headers: { 'x-liked': '0' }
-            });
-            localStorage.setItem('liked_' + postId, '1');
-          } else {
-            await fetch(`/api/items/${postId}/unlike`, {
-              method: 'POST',
-              headers: { 'x-liked': '1' }
-            });
-            localStorage.removeItem('liked_' + postId);
-          }
-          loadFeed(false); // Don't show skeletons when liking/unliking
-        } catch (err) {
-          alert('Error updating like.');
+        let liked = getLiked();
+        let count = parseInt(likeCountSpan.textContent, 10) || 0;
+        // Optimistically update UI
+        if (!liked) {
+          btn.classList.add('liked');
+          likeCountSpan.textContent = count + 1;
+          setLiked(true);
+        } else {
+          btn.classList.remove('liked');
+          likeCountSpan.textContent = Math.max(0, count - 1);
+          setLiked(false);
         }
         // Animate heart
         const heart = btn.querySelector('.heart-svg');
@@ -113,6 +113,32 @@ async function loadFeed(showSkeleton = true) {
           heart.classList.remove('pop');
           void heart.offsetWidth;
           heart.classList.add('pop');
+        }
+        // Sync with backend
+        try {
+          if (!liked) {
+            await fetch(`/api/items/${postId}/like`, {
+              method: 'POST',
+              headers: { 'x-liked': '0' }
+            });
+          } else {
+            await fetch(`/api/items/${postId}/unlike`, {
+              method: 'POST',
+              headers: { 'x-liked': '1' }
+            });
+          }
+        } catch (err) {
+          // Revert UI if failed
+          if (!liked) {
+            btn.classList.remove('liked');
+            likeCountSpan.textContent = Math.max(0, count);
+            setLiked(false);
+          } else {
+            btn.classList.add('liked');
+            likeCountSpan.textContent = count;
+            setLiked(true);
+          }
+          alert('Error updating like.');
         }
       };
     });
