@@ -80,6 +80,45 @@ app.post('/api/items/:id/unlike', async (req, res) => {
   }
 });
 
+// Add a comment to an item
+app.post('/api/items/:id/comments', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { name, text } = req.body;
+    if (!name || !text) {
+      return res.status(400).json({ error: 'Missing name or text' });
+    }
+    const comment = { name, text, timestamp: Date.now() };
+    const ref = await db.ref('items/' + postId + '/comments').push(comment);
+    res.json({ success: true, id: ref.key });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add comment' });
+  }
+});
+
+// Get comments for an item
+app.get('/api/items/:id/comments', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    // Check if item exists
+    const itemSnapshot = await db.ref('items/' + postId).once('value');
+    if (!itemSnapshot.exists()) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    const snapshot = await db.ref('items/' + postId + '/comments').orderByChild('timestamp').limitToLast(50).once('value');
+    const comments = [];
+    snapshot.forEach(child => {
+      const val = child.val();
+      val._id = child.key;
+      comments.push(val);
+    });
+    comments.reverse();
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

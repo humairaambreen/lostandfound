@@ -91,6 +91,7 @@ async function loadFeed(showSkeleton = true) {
       const date = item.timestamp ? new Date(item.timestamp) : null;
       const dateString = date ? date.toLocaleString() : '';
       const likeCount = item.likes || 0;
+      // Comment section placeholder
       return `
         <div class="item" data-id="${item._id}">
           <div class="meta"><b>${item.name}</b> (${item.number})</div>
@@ -105,9 +106,18 @@ async function loadFeed(showSkeleton = true) {
             </span>
             <span class="like-count">${likeCount}</span>
           </button>
+          <div class="comments-section">
+            <div class="comments-list" id="comments-${item._id}"></div>
+            <form class="comment-form" data-id="${item._id}">
+              <input type="text" name="name" placeholder="Your Name" required style="margin-right:0.5em;" />
+              <input type="text" name="text" placeholder="Add a comment..." required />
+              <button type="submit">Post</button>
+            </form>
+          </div>
         </div>
       `;
     }).join('');
+
     // Add event listeners for like buttons
     document.querySelectorAll('.like-btn').forEach((btn, idx) => {
       const postId = items[idx]._id;
@@ -167,6 +177,68 @@ async function loadFeed(showSkeleton = true) {
           alert('Error updating like.');
         }
       };
+    });
+
+    // Load comments for each item
+    items.forEach(async item => {
+      const commentsList = document.getElementById('comments-' + item._id);
+      if (commentsList) {
+        commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">Loading comments...</div>';
+        try {
+          const res = await fetch(`/api/items/${item._id}/comments`);
+          const comments = await res.json();
+          if (Array.isArray(comments) && comments.length > 0) {
+            commentsList.innerHTML = comments.map(c => {
+              const date = c.timestamp ? new Date(c.timestamp).toLocaleString() : '';
+              return `<div class="comment"><b>${c.name}</b>: ${c.text} <span class="comment-date">${date}</span></div>`;
+            }).join('');
+          } else {
+            commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">No comments yet.</div>';
+          }
+        } catch {
+          commentsList.innerHTML = '<div style="color:#f55;font-size:0.95em;">Error loading comments.</div>';
+        }
+      }
+    });
+
+    // Handle comment form submission
+    document.querySelectorAll('.comment-form').forEach(form => {
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const postId = form.getAttribute('data-id');
+        const name = form.elements['name'].value.trim();
+        const text = form.elements['text'].value.trim();
+        if (!name || !text) return;
+        form.querySelector('button[type="submit"]').disabled = true;
+        try {
+          const res = await fetch(`/api/items/${postId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, text })
+          });
+          if (!res.ok) throw new Error('Failed to post comment');
+          form.reset();
+          // Reload comments
+          const commentsList = document.getElementById('comments-' + postId);
+          if (commentsList) {
+            commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">Loading comments...</div>';
+            const res2 = await fetch(`/api/items/${postId}/comments`);
+            const comments = await res2.json();
+            if (Array.isArray(comments) && comments.length > 0) {
+              commentsList.innerHTML = comments.map(c => {
+                const date = c.timestamp ? new Date(c.timestamp).toLocaleString() : '';
+                return `<div class="comment"><b>${c.name}</b>: ${c.text} <span class="comment-date">${date}</span></div>`;
+              }).join('');
+            } else {
+              commentsList.innerHTML = '<div style="color:#bbb;font-size:0.95em;">No comments yet.</div>';
+            }
+          }
+        } catch {
+          alert('Error posting comment.');
+        } finally {
+          form.querySelector('button[type="submit"]').disabled = false;
+        }
+      });
     });
   } catch (err) {
     feed.innerHTML = '<div>Error loading feed.</div>';
