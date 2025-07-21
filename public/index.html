@@ -22,7 +22,16 @@
         <input type="text" id="name" placeholder="Your Name" required />
         <input type="text" id="number" placeholder="Your Number" required />
         <textarea id="description" placeholder="Item Description" required></textarea>
-        <input type="file" id="photo" accept="image/*" required />
+        <div class="upload-box">
+          <input type="file" id="photo" accept="image/*" required style="display:none;" />
+          <label for="photo" class="upload-label">
+            <span class="upload-text">Select Image</span>
+          </label>
+          <div class="preview-wrapper" style="display:none;">
+            <img id="photoPreview" class="upload-preview" src="" alt="Preview" />
+            <button type="button" id="closePreview" class="close-preview" aria-label="Discard image">&times;</button>
+          </div>
+        </div>
         <button type="submit">Submit Item</button>
       </form>
     </div>

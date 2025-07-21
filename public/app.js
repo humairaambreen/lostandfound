@@ -1,3 +1,29 @@
+// Image preview for upload
+const photoInput = document.getElementById('photo');
+const photoPreview = document.getElementById('photoPreview');
+const previewWrapper = document.querySelector('.preview-wrapper');
+const closePreviewBtn = document.getElementById('closePreview');
+if (photoInput && photoPreview && previewWrapper && closePreviewBtn) {
+  photoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        photoPreview.src = event.target.result;
+        previewWrapper.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      photoPreview.src = '';
+      previewWrapper.style.display = 'none';
+    }
+  });
+  closePreviewBtn.addEventListener('click', () => {
+    photoInput.value = '';
+    photoPreview.src = '';
+    previewWrapper.style.display = 'none';
+  });
+}
 const form = document.getElementById('itemForm');
 const feed = document.getElementById('feed');
 const submitBtn = form.querySelector('button[type="submit"]');
