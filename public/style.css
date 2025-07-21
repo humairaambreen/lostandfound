@@ -182,10 +182,15 @@ button[type="submit"]:hover {
   color: rgba(0,0,0,0.6);
 }
 
+/* Make post images square and centered */
 .item img {
+  width: 340px;
+  height: 340px;
+  object-fit: cover;
+  border-radius: 1rem;
+  display: block;
+  margin: 0.75rem auto;
   max-width: 100%;
-  border-radius: 0.5rem;
-  margin-top: 0.75rem;
 }
 
 /* Tabs */
@@ -231,6 +236,54 @@ button[type="submit"]:hover {
 .item:active, .like-btn:active, button:active, .tab-btn:active {
   outline: none;
   box-shadow: none;
+}
+
+/* Skeleton loading styles */
+.skeleton {
+  background: linear-gradient(90deg, #eee 25%, #eae7d6 50%, #eee 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.2s infinite linear;
+  border-radius: 0.75rem;
+}
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-text {
+  height: 1.1em;
+  width: 80%;
+  margin: 0.3em 0;
+}
+/* Make skeleton image box even bigger and centered */
+.skeleton-img {
+  height: 340px;
+  width: 340px;
+  margin: 1.5em auto;
+  display: block;
+  border-radius: 1rem;
+}
+.skeleton-meta {
+  height: 1em;
+  width: 50%;
+  margin: 0.2em 0;
+}
+.skeleton-timestamp {
+  height: 0.8em;
+  width: 40%;
+  margin: 0.2em 0;
+}
+
+/* Make skeleton item box match loaded item style */
+.skeleton-item {
+  background: var(--color-white);
+  border-radius: 1rem;
+  padding: 1.5rem 1.3rem 1.3rem 1.3rem;
+  margin: 0 12px;
+  box-shadow: 0 2px 8px var(--color-shadow);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
 }
 
 @media (max-width: 600px) {

@@ -40,11 +40,24 @@ form.addEventListener('submit', async (e) => {
   reader.readAsDataURL(file);
 });
 
+// Show skeletons in feed while loading
+window.showFeedSkeletons = function() {
+  const feed = document.getElementById('feed');
+  feed.innerHTML = Array(4).fill().map(() => `
+    <div class="skeleton-item">
+      <div class="skeleton skeleton-meta"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-img"></div>
+      <div class="skeleton skeleton-timestamp"></div>
+      <div class="skeleton skeleton-text" style="width:40%;"></div>
+    </div>
+  `).join('');
+};
 
-
-// ...removed unused local like logic...
-
-async function loadFeed() {
+async function loadFeed(showSkeleton = true) {
+  if (showSkeleton) showFeedSkeletons();
+  // Wait for 3 seconds before loading actual feed
+  await new Promise(resolve => setTimeout(resolve, showSkeleton ? 3000 : 0));
   try {
     const res = await fetch('/api/items');
     const items = await res.json();
@@ -90,7 +103,7 @@ async function loadFeed() {
             });
             localStorage.removeItem('liked_' + postId);
           }
-          loadFeed();
+          loadFeed(false); // Don't show skeletons when liking/unliking
         } catch (err) {
           alert('Error updating like.');
         }
