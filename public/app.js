@@ -81,6 +81,7 @@ window.showFeedSkeletons = function() {
 };
 
 async function loadFeed(showSkeleton = true) {
+  // ...existing code...
   if (showSkeleton) showFeedSkeletons();
   // Wait for 3 seconds before loading actual feed
   await new Promise(resolve => setTimeout(resolve, showSkeleton ? 3000 : 0));
@@ -91,33 +92,95 @@ async function loadFeed(showSkeleton = true) {
       const date = item.timestamp ? new Date(item.timestamp) : null;
       const dateString = date ? date.toLocaleString() : '';
       const likeCount = item.likes || 0;
-      // Comment section placeholder
       return `
-                <div class="item" data-id="${item._id}" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
+        <div class="item" data-id="${item._id}" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
           <div class="meta"><b>${item.name}</b> (${item.number})</div>
           <div>${item.description}</div>
           ${item.photo ? `<img src="${item.photo}" alt="item photo" />` : ''}
           <div class="timestamp">${dateString ? `Uploaded: ${dateString}` : ''}</div>
-          <button class="like-btn" aria-label="Like post" type="button">
-            <span class="heart-svg" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path class="heart-shape" d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z"/>
-              </svg>
-            </span>
-            <span class="like-count">${likeCount}</span>
-          </button>
-          <div class="comments-section" style="margin-top:6px;">
-            <div class="comments-count" id="comments-count-${item._id}" style="color:#888;font-size:0.92em;text-align:right;"></div>
+          <div class="post-meta-bar" style="display:flex;align-items:center;justify-content:space-between;background:#f7f7f7;border-radius:0.7em;margin-top:10px;padding:7px 14px 7px 14px;">
+            <button class="like-btn-meta" aria-label="Like post" type="button" style="background:none;border:none;display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <span class="heart-svg" aria-hidden="true" style="width:20px;height:20px;display:inline-block;vertical-align:middle;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path class="heart-shape" d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/>
+                </svg>
+              </span>
+              <span class="like-count-meta" id="like-count-meta-${item._id}" style="color:#888;font-size:0.92em;">${likeCount}</span>
+              <span style="color:#888;font-size:0.92em;">likes</span>
+            </button>
+            <div class="comments-count-meta" id="comments-count-${item._id}" style="color:#888;font-size:0.92em;">Loading...</div>
           </div>
         </div>
       `;
     }).join('');
+
+    // Add event listeners for meta bar like buttons (after feed.innerHTML is set)
+    document.querySelectorAll('.like-btn-meta').forEach((btn) => {
+      const postId = btn.closest('.item').getAttribute('data-id');
+      const likeCountSpan = btn.querySelector('.like-count-meta');
+      const getLiked = () => localStorage.getItem('liked_' + postId) === '1';
+      const setLiked = (val) => {
+        if (val) localStorage.setItem('liked_' + postId, '1');
+        else localStorage.removeItem('liked_' + postId);
+      };
+      // Initial state
+      if (getLiked()) btn.classList.add('liked');
+      else btn.classList.remove('liked');
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        let liked = getLiked();
+        let count = parseInt(likeCountSpan.textContent, 10) || 0;
+        // Optimistically update UI
+        if (!liked) {
+          btn.classList.add('liked');
+          likeCountSpan.textContent = count + 1;
+          setLiked(true);
+        } else {
+          btn.classList.remove('liked');
+          likeCountSpan.textContent = Math.max(0, count - 1);
+          setLiked(false);
+        }
+        // Animate heart
+        const heart = btn.querySelector('.heart-svg');
+        if (heart) {
+          heart.classList.remove('pop');
+          void heart.offsetWidth;
+          heart.classList.add('pop');
+        }
+        // Sync with backend
+        try {
+          if (!liked) {
+            await fetch(`/api/items/${postId}/like`, {
+              method: 'POST',
+              headers: { 'x-liked': '0' }
+            });
+          } else {
+            await fetch(`/api/items/${postId}/unlike`, {
+              method: 'POST',
+              headers: { 'x-liked': '1' }
+            });
+          }
+        } catch (err) {
+          // Revert UI if failed
+          if (!liked) {
+            btn.classList.remove('liked');
+            likeCountSpan.textContent = Math.max(0, count);
+            setLiked(false);
+          } else {
+            btn.classList.add('liked');
+            likeCountSpan.textContent = count;
+            setLiked(true);
+          }
+          alert('Error updating like.');
+        }
+      };
+    });
     // Add click handler to each item to open post.html?id=POST_ID
     document.querySelectorAll('.item').forEach(itemDiv => {
       const postId = itemDiv.getAttribute('data-id');
       itemDiv.addEventListener('click', function(e) {
-        // Prevent click on like button or comment form from triggering navigation
-        if (e.target.closest('.like-btn') || e.target.closest('.comment-form')) return;
+        // Prevent click on like button, meta like button, or comment form from triggering navigation
+        if (e.target.closest('.like-btn') || e.target.closest('.like-btn-meta') || e.target.closest('.comment-form')) return;
         window.location.href = `post.html?id=${postId}`;
       });
     });
@@ -199,6 +262,11 @@ async function loadFeed(showSkeleton = true) {
         } catch {
           commentsCountDiv.textContent = 'Error';
         }
+      }
+      // Also update like count in meta bar if needed (in case likes change dynamically)
+      const likeCountMeta = document.getElementById('like-count-meta-' + item._id);
+      if (likeCountMeta) {
+        likeCountMeta.textContent = item.likes || 0;
       }
     });
     // Add click handler for 'View all comments' buttons
