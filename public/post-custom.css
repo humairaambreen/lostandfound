@@ -101,7 +101,7 @@ body {
   font-family: 'Poppins', sans-serif;
   background: none;
   border-radius: 0.2em;
-  padding: 0.2em 1em 0.2em 1em;
+  padding: 0.5em 1em 0.5em 1em;
   box-shadow: none;
   word-break: break-word;
   display: flex;
@@ -131,6 +131,7 @@ body {
   flex-direction: column;
   gap: 0.12em;
   margin-top: 1.5em;
+  margin-bottom: 1.2em;
   background: none;
   border-radius: 0.7em;
   box-shadow: none;

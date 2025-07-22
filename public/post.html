@@ -20,16 +20,16 @@
       </section>
       <section class="comments-section" aria-label="Comments">
         <!-- Like bar removed -->
-        <header class="comments-header">
-          <h2>Comments</h2>
-          <span id="comments-count" class="comments-count-meta"></span>
-        </header>
-        <div id="comments-list"></div>
         <form id="commentForm" class="comment-form" autocomplete="off">
           <input type="text" id="commentName" class="comment-input" placeholder="Your Name" required aria-label="Your Name" />
           <textarea id="commentText" class="comment-input" placeholder="Add a comment..." required aria-label="Comment"></textarea>
           <button type="submit" class="comment-btn">Post</button>
         </form>
+        <header class="comments-header">
+          <h2>Comments</h2>
+          <span id="comments-count" class="comments-count-meta"></span>
+        </header>
+        <div id="comments-list"></div>
       </section>
     </main>
     <script src="post.js"></script>
