@@ -71,7 +71,11 @@ commentForm.addEventListener('submit', async e => {
   e.preventDefault();
   const name = commentName.value.trim();
   const text = commentText.value.trim();
-  if (!name || !text) return;
+  if (!name || !text) {
+    if (!name) commentName.focus();
+    else commentText.focus();
+    return;
+  }
   commentForm.querySelector('button[type="submit"]').disabled = true;
   try {
     const res = await fetch(`/api/items/${postId}/comments`, {
@@ -81,6 +85,8 @@ commentForm.addEventListener('submit', async e => {
     });
     if (!res.ok) throw new Error('Failed to post comment');
     commentForm.reset();
+    commentName.blur();
+    commentText.blur();
     await loadComments();
   } catch {
     alert('Error posting comment.');
