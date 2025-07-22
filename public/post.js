@@ -19,7 +19,24 @@ async function loadPost() {
     postDetails.innerHTML = '<div style="color:#f55;">Invalid post.</div>';
     return;
   }
-  // Fetch post details
+  // Show skeleton while loading
+  postDetails.innerHTML = `
+    <div class="skeleton-item">
+      <div class="skeleton skeleton-meta" style="height:1.2em;width:60%;margin-bottom:0.7em;"></div>
+      <div class="skeleton skeleton-img" style="width:100%;max-width:340px;aspect-ratio:1/1;margin:0.75rem auto;"></div>
+      <div class="skeleton skeleton-text" style="height:1.1em;width:80%;margin-bottom:0.3em;"></div>
+      <div class="skeleton skeleton-timestamp" style="height:0.8em;width:40%;margin-bottom:0.2em;"></div>
+    </div>
+  `;
+  // Show skeleton UI
+  postDetails.innerHTML = `
+    <div class="skeleton skeleton-img" style="width:100%;max-width:340px;aspect-ratio:1/1;margin:0.75rem auto;border-radius:1em;"></div>
+    <div class="skeleton skeleton-meta" style="height:1.2em;width:60%;margin-bottom:0.7em;border-radius:0.5em;"></div>
+    <div class="skeleton skeleton-text" style="height:1.1em;width:90%;margin-bottom:0.5em;border-radius:0.5em;"></div>
+    <div class="skeleton skeleton-timestamp" style="height:0.9em;width:40%;margin-bottom:0.2em;border-radius:0.5em;"></div>
+  `;
+  // Wait for 3 seconds before loading actual post
+  await new Promise(resolve => setTimeout(resolve, 3000));
   try {
     const res = await fetch(`/api/items`);
     const items = await res.json();
