@@ -36,15 +36,6 @@ async function loadPost() {
       <div class="meta"><b>${item.name}</b> (${item.number})</div>
       <div class="post-description">${item.description}</div>
       <div class="timestamp">${dateString ? `Uploaded: ${dateString}` : ''}</div>
-      <div class="post-meta-bar">
-        <div class="like-btn-meta">
-          <span class="heart-svg" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="28" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/></svg>
-          </span>
-          <span class="like-count-meta">${item.likes || 0}</span>
-          <span class="like-label">likes</span>
-        </div>
-      </div>
     `;
   } catch {
     postDetails.innerHTML = '<div style="color:#f55;">Error loading post.</div>';
