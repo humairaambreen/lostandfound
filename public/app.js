@@ -95,8 +95,8 @@ async function loadFeed(showSkeleton = true) {
       const liked = localStorage.getItem('liked_' + item._id) === '1';
       // Use two different SVGs for liked/unliked, with correct color
       const heartSVG = liked
-        ? `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#FF8DAA"/></svg>`
-        : `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/></svg>`;
+        ? `<svg viewBox="0 0 24 24" width="28" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#FF8DAA"/></svg>`
+        : `<svg viewBox="0 0 24 24" width="28" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/></svg>`;
       return `
         <div class="item${liked ? ' liked' : ''}" data-id="${item._id}" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
           <div class="meta"><b>${item.name}</b> (${item.number})</div>
@@ -105,11 +105,11 @@ async function loadFeed(showSkeleton = true) {
           <div class="timestamp">${dateString ? `Uploaded: ${dateString}` : ''}</div>
           <div class="post-meta-bar" style="display:flex;align-items:center;justify-content:space-between;background:#f7f7f7;border-radius:0.7em;margin-top:10px;padding:7px 14px 7px 14px;">
             <button class="like-btn-meta${liked ? ' liked' : ''}" aria-label="Like post" type="button" style="background:none;border:none;display:flex;align-items:center;gap:6px;cursor:pointer;">
-              <span class="heart-svg" aria-hidden="true" style="width:20px;height:20px;display:inline-block;vertical-align:middle;">
+              <span class="heart-svg" aria-hidden="true" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;vertical-align:middle;">
                 ${heartSVG}
               </span>
-              <span class="like-count-meta" id="like-count-meta-${item._id}" style="color:#888;font-size:0.92em;">${likeCount}</span>
-              <span style="color:#888;font-size:0.92em;">likes</span>
+              <span class="like-count-meta" id="like-count-meta-${item._id}" style="color:#888;font-size:1.1em;font-family:'Poppins',sans-serif;margin-left:0.12em;display:flex;align-items:flex-end;margin-top:2px;">${likeCount}</span>
+              <span style="color:#888;font-size:1.1em;font-family:'Poppins',sans-serif;margin-left:0.05em;display:flex;align-items:flex-end;margin-top:2px;">likes</span>
             </button>
             <div class="comments-count-meta" id="comments-count-${item._id}" style="color:#888;font-size:0.92em;">Loading...</div>
           </div>
@@ -145,8 +145,8 @@ async function loadFeed(showSkeleton = true) {
         const heartSpan = btn.querySelector('.heart-svg');
         if (heartSpan) {
           heartSpan.innerHTML = getLiked()
-            ? `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#FF8DAA"/></svg>`
-            : `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/></svg>`;
+            ? `<svg viewBox="0 0 24 24" width="28" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#FF8DAA"/></svg>`
+            : `<svg viewBox="0 0 24 24" width="28" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/></svg>`;
         }
         // Animate heart
         if (heartSpan) {

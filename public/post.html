@@ -11,18 +11,28 @@
     .back-btn:hover { opacity: 0.9; }
   </style>
 </head>
-<body>
-  <div class="post-container">
-    <button class="back-btn" onclick="window.history.back()">← Back to Feed</button>
-    <div id="post-details"></div>
-    <h2>Comments</h2>
-    <div id="comments-list"></div>
-    <form id="commentForm" style="margin-top:1em;">
-      <input type="text" id="commentName" placeholder="Your Name" required style="margin-right:0.5em;" />
-      <input type="text" id="commentText" placeholder="Add a comment..." required />
-      <button type="submit">Post</button>
-    </form>
-  </div>
-  <script src="post.js"></script>
-</body>
+  <body style="background:#fff;">
+    <button class="back-arrow-btn" onclick="window.history.back()" aria-label="Back to Feed">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+        <circle cx="16" cy="16" r="16" fill="#f7f7f7"/>
+        <path d="M19 10l-5 6 5 6" stroke="#888" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="post-card">
+      <div id="post-details"></div>
+      <div class="comments-section">
+        <div class="comments-header">
+          <h2>Comments</h2>
+          <span id="comments-count" class="comments-count-meta"></span>
+        </div>
+        <div id="comments-list"></div>
+        <form id="commentForm" class="comment-form">
+          <input type="text" id="commentName" placeholder="Your Name" required />
+          <input type="text" id="commentText" placeholder="Add a comment..." required />
+          <button type="submit">Post</button>
+        </form>
+      </div>
+    </div>
+    <script src="post.js"></script>
+  </body>
 </html>
