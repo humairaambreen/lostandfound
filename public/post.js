@@ -33,7 +33,7 @@ async function loadPost() {
       <div class="post-image-wrapper">
         ${item.photo ? `<img class="post-image" src="${item.photo}" alt="item photo" />` : ''}
       </div>
-      <div class="meta"><b>${item.name}</b> (${item.number})</div>
+      <div class="meta"><b>${item.name}</b><br><a href="tel:${item.number}" style="font-weight:400;color:#888;text-decoration:none;">${item.number}</a></div>
       <div class="post-description">${item.description}</div>
       <div class="timestamp">${dateString ? `Uploaded: ${dateString}` : ''}</div>
     `;
