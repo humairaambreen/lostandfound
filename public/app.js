@@ -99,7 +99,7 @@ async function loadFeed(showSkeleton = true) {
         : `<svg viewBox="0 0 24 24" width="28" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/></svg>`;
       return `
         <div class="item${liked ? ' liked' : ''}" data-id="${item._id}" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
-          <div class="meta"><b>${item.name}</b> (${item.number})</div>
+          <div class="meta"><b>${item.name}</b><br><a href="tel:${item.number}" style="font-weight:400;color:#888;text-decoration:none;">${item.number}</a></div>
           <div>${item.description}</div>
           ${item.photo ? `<img src="${item.photo}" alt="item photo" />` : ''}
           <div class="timestamp">${dateString ? `Uploaded: ${dateString}` : ''}</div>
