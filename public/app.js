@@ -92,18 +92,21 @@ async function loadFeed(showSkeleton = true) {
       const date = item.timestamp ? new Date(item.timestamp) : null;
       const dateString = date ? date.toLocaleString() : '';
       const likeCount = item.likes || 0;
+      const liked = localStorage.getItem('liked_' + item._id) === '1';
+      // Use two different SVGs for liked/unliked, with correct color
+      const heartSVG = liked
+        ? `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#FF8DAA"/></svg>`
+        : `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/></svg>`;
       return `
-        <div class="item" data-id="${item._id}" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
+        <div class="item${liked ? ' liked' : ''}" data-id="${item._id}" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
           <div class="meta"><b>${item.name}</b> (${item.number})</div>
           <div>${item.description}</div>
           ${item.photo ? `<img src="${item.photo}" alt="item photo" />` : ''}
           <div class="timestamp">${dateString ? `Uploaded: ${dateString}` : ''}</div>
           <div class="post-meta-bar" style="display:flex;align-items:center;justify-content:space-between;background:#f7f7f7;border-radius:0.7em;margin-top:10px;padding:7px 14px 7px 14px;">
-            <button class="like-btn-meta" aria-label="Like post" type="button" style="background:none;border:none;display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <button class="like-btn-meta${liked ? ' liked' : ''}" aria-label="Like post" type="button" style="background:none;border:none;display:flex;align-items:center;gap:6px;cursor:pointer;">
               <span class="heart-svg" aria-hidden="true" style="width:20px;height:20px;display:inline-block;vertical-align:middle;">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path class="heart-shape" d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/>
-                </svg>
+                ${heartSVG}
               </span>
               <span class="like-count-meta" id="like-count-meta-${item._id}" style="color:#888;font-size:0.92em;">${likeCount}</span>
               <span style="color:#888;font-size:0.92em;">likes</span>
@@ -113,6 +116,7 @@ async function loadFeed(showSkeleton = true) {
         </div>
       `;
     }).join('');
+    // No need to manually update SVG fill; CSS will handle color via .liked class
 
     // Add event listeners for meta bar like buttons (after feed.innerHTML is set)
     document.querySelectorAll('.like-btn-meta').forEach((btn) => {
@@ -123,9 +127,6 @@ async function loadFeed(showSkeleton = true) {
         if (val) localStorage.setItem('liked_' + postId, '1');
         else localStorage.removeItem('liked_' + postId);
       };
-      // Initial state
-      if (getLiked()) btn.classList.add('liked');
-      else btn.classList.remove('liked');
       btn.onclick = async (e) => {
         e.stopPropagation();
         let liked = getLiked();
@@ -140,12 +141,18 @@ async function loadFeed(showSkeleton = true) {
           likeCountSpan.textContent = Math.max(0, count - 1);
           setLiked(false);
         }
+        // Replace heart SVG with correct color
+        const heartSpan = btn.querySelector('.heart-svg');
+        if (heartSpan) {
+          heartSpan.innerHTML = getLiked()
+            ? `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#FF8DAA"/></svg>`
+            : `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z" fill="#bbb"/></svg>`;
+        }
         // Animate heart
-        const heart = btn.querySelector('.heart-svg');
-        if (heart) {
-          heart.classList.remove('pop');
-          void heart.offsetWidth;
-          heart.classList.add('pop');
+        if (heartSpan) {
+          heartSpan.classList.remove('pop');
+          void heartSpan.offsetWidth;
+          heartSpan.classList.add('pop');
         }
         // Sync with backend
         try {
@@ -166,10 +173,12 @@ async function loadFeed(showSkeleton = true) {
             btn.classList.remove('liked');
             likeCountSpan.textContent = Math.max(0, count);
             setLiked(false);
+            if (heartSpan) heartSpan.innerHTML = `<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z\" fill=\"#bbb\"/></svg>`;
           } else {
             btn.classList.add('liked');
             likeCountSpan.textContent = count;
             setLiked(true);
+            if (heartSpan) heartSpan.innerHTML = `<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 21s-6.5-5.2-8.5-8C1.5 9.5 3.5 5.5 7.5 5.5c1.7 0 3.2 1 4.1 2.3C12.8 6.5 14.3 5.5 16 5.5c4 0 6 4 4 7.5-2 2.8-8 8-8 8z\" fill=\"#FF8DAA\"/></svg>`;
           }
           alert('Error updating like.');
         }
@@ -185,7 +194,7 @@ async function loadFeed(showSkeleton = true) {
       });
     });
 
-    // Add event listeners for like buttons
+    // Add event listeners for like buttons (main like button)
     document.querySelectorAll('.like-btn').forEach((btn, idx) => {
       const postId = items[idx]._id;
       const likeCountSpan = btn.querySelector('.like-count');
@@ -195,8 +204,14 @@ async function loadFeed(showSkeleton = true) {
         else localStorage.removeItem('liked_' + postId);
       };
       // Initial state
-      if (getLiked()) btn.classList.add('liked');
-      else btn.classList.remove('liked');
+      const heartPath = btn.querySelector('.heart-shape');
+      if (getLiked()) {
+        btn.classList.add('liked');
+        if (heartPath) heartPath.setAttribute('fill', '#ff69b4'); // pink
+      } else {
+        btn.classList.remove('liked');
+        if (heartPath) heartPath.setAttribute('fill', '#bbb'); // default gray
+      }
       btn.onclick = async () => {
         let liked = getLiked();
         let count = parseInt(likeCountSpan.textContent, 10) || 0;
@@ -205,10 +220,12 @@ async function loadFeed(showSkeleton = true) {
           btn.classList.add('liked');
           likeCountSpan.textContent = count + 1;
           setLiked(true);
+          if (heartPath) heartPath.setAttribute('fill', '#ff69b4'); // pink
         } else {
           btn.classList.remove('liked');
           likeCountSpan.textContent = Math.max(0, count - 1);
           setLiked(false);
+          if (heartPath) heartPath.setAttribute('fill', '#bbb'); // default gray
         }
         // Animate heart
         const heart = btn.querySelector('.heart-svg');
@@ -236,17 +253,19 @@ async function loadFeed(showSkeleton = true) {
             btn.classList.remove('liked');
             likeCountSpan.textContent = Math.max(0, count);
             setLiked(false);
+            if (heartPath) heartPath.setAttribute('fill', '#bbb');
           } else {
             btn.classList.add('liked');
             likeCountSpan.textContent = count;
             setLiked(true);
+            if (heartPath) heartPath.setAttribute('fill', '#ff69b4');
           }
           alert('Error updating like.');
         }
       };
     });
 
-    // Load comment count for each item
+    // Load comment count for each item and set up real-time like listeners
     items.forEach(async item => {
       const commentsCountDiv = document.getElementById('comments-count-' + item._id);
       if (commentsCountDiv) {
@@ -263,10 +282,42 @@ async function loadFeed(showSkeleton = true) {
           commentsCountDiv.textContent = 'Error';
         }
       }
-      // Also update like count in meta bar if needed (in case likes change dynamically)
-      const likeCountMeta = document.getElementById('like-count-meta-' + item._id);
-      if (likeCountMeta) {
-        likeCountMeta.textContent = item.likes || 0;
+      // Real-time like count update using Firebase (only if initialized)
+      try {
+        if (
+          window.firebase &&
+          window.firebase.apps &&
+          window.firebase.apps.length > 0 &&
+          window.firebase.database
+        ) {
+          const likeCountMeta = document.getElementById('like-count-meta-' + item._id);
+          const likeBtnMeta = likeCountMeta ? likeCountMeta.closest('.like-btn-meta') : null;
+          const heartPath = likeBtnMeta ? likeBtnMeta.querySelector('.heart-shape') : null;
+          if (likeCountMeta) {
+            const likeRef = window.firebase.database().ref('items/' + item._id + '/likes');
+            likeRef.on('value', (snapshot) => {
+              const val = snapshot.val() || 0;
+              likeCountMeta.textContent = val;
+              // Update heart color based on local liked state
+              if (heartPath) {
+                const liked = localStorage.getItem('liked_' + item._id) === '1';
+                heartPath.setAttribute('fill', liked ? '#ff69b4' : '#bbb');
+              }
+            });
+          }
+        } else {
+          // Fallback: just set static like count
+          const likeCountMeta = document.getElementById('like-count-meta-' + item._id);
+          if (likeCountMeta) {
+            likeCountMeta.textContent = item.likes || 0;
+          }
+        }
+      } catch (e) {
+        // Suppress Firebase errors if not initialized
+        const likeCountMeta = document.getElementById('like-count-meta-' + item._id);
+        if (likeCountMeta) {
+          likeCountMeta.textContent = item.likes || 0;
+        }
       }
     });
     // Add click handler for 'View all comments' buttons
