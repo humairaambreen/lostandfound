@@ -21,9 +21,7 @@
   box-shadow: none;
   transition: opacity 0.18s;
 }
-.back-arrow-btn:hover svg circle {
-  fill: #FF8DAA;
-}
+
 .back-arrow-btn svg {
   display: block;
 }
