@@ -43,7 +43,6 @@
 }
 
 body {
-  background: #f8fafb;
   font-family: 'Poppins', sans-serif;
   color: #232a34;
   margin: 0;
@@ -167,7 +166,7 @@ body {
 }
 .comment-input {
   width: 100%;
-  max-width: 460px;
+  max-width: 420px;
   font-size: 1.25em;
   height: 72px;
   padding: 0 1.2em;
@@ -189,7 +188,7 @@ body {
 }
 .comment-btn {
   width: 100%;
-  max-width: 460px;
+  max-width: 420px;
   background: #a4c3a2;
   color: #fff;
   border: none;
