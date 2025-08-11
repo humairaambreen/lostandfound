@@ -1,3 +1,28 @@
+// Truncate descriptions and add 'Show more' button
+document.addEventListener('DOMContentLoaded', function() {
+  const MAX_CHARS = 175;
+  document.querySelectorAll('.item-description').forEach(function(desc) {
+    const fullText = desc.textContent.trim();
+    if (fullText.length > MAX_CHARS) {
+      const shortText = fullText.slice(0, MAX_CHARS) + '...';
+      desc.textContent = shortText;
+      const btn = document.createElement('button');
+      btn.className = 'show-more-btn';
+      btn.textContent = 'Show more';
+      btn.onclick = function() {
+        if (desc.textContent === shortText) {
+          desc.textContent = fullText;
+          btn.textContent = 'Show less';
+        } else {
+          desc.textContent = shortText;
+          btn.textContent = 'Show more';
+        }
+        desc.appendChild(btn);
+      };
+      desc.appendChild(btn);
+    }
+  });
+});
 // Image preview for upload
 const photoInput = document.getElementById('photo');
 const photoPreview = document.getElementById('photoPreview');
@@ -69,15 +94,38 @@ form.addEventListener('submit', async (e) => {
 // Show skeletons in feed while loading
 window.showFeedSkeletons = function() {
   const feed = document.getElementById('feed');
-  feed.innerHTML = Array(4).fill().map(() => `
-    <div class="skeleton-item">
-      <div class="skeleton skeleton-meta"></div>
-      <div class="skeleton skeleton-text"></div>
-      <div class="skeleton skeleton-img"></div>
-      <div class="skeleton skeleton-timestamp"></div>
-      <div class="skeleton skeleton-text" style="width:40%;"></div>
-    </div>
-  `).join('');
+  const isDesktop = window.innerWidth >= 900;
+  
+  if (isDesktop) {
+    // Desktop masonry skeleton with varied heights
+    feed.innerHTML = Array(9).fill().map((_, index) => {
+      const heights = ['short', 'medium', 'tall'];
+      const height = heights[index % 3];
+      return `
+        <div class="skeleton-item desktop-skeleton ${height}">
+          <div class="skeleton skeleton-meta-desktop"></div>
+          <div class="skeleton skeleton-text-desktop"></div>
+          <div class="skeleton skeleton-img-desktop"></div>
+          <div class="skeleton skeleton-timestamp-desktop"></div>
+          <div class="skeleton-meta-bar-desktop">
+            <div class="skeleton skeleton-like-desktop"></div>
+            <div class="skeleton skeleton-comments-desktop"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } else {
+    // Mobile skeleton (keep existing)
+    feed.innerHTML = Array(4).fill().map(() => `
+      <div class="skeleton-item">
+        <div class="skeleton skeleton-meta"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-img"></div>
+        <div class="skeleton skeleton-timestamp"></div>
+        <div class="skeleton skeleton-text" style="width:40%;"></div>
+      </div>
+    `).join('');
+  }
 };
 
 async function loadFeed(showSkeleton = true) {
@@ -375,3 +423,30 @@ async function loadFeed(showSkeleton = true) {
 } // End of loadFeed
 
 window.onload = loadFeed;
+
+// Truncate descriptions and add 'Show more' button after feed loads
+function applyDescriptionTruncation() {
+  const MAX_CHARS = 175;
+  document.querySelectorAll('.item-description').forEach(function(desc) {
+    const fullText = desc.textContent.trim();
+    if (fullText.length > MAX_CHARS) {
+      const shortText = fullText.slice(0, MAX_CHARS) + '...';
+      desc.textContent = shortText;
+      const btn = document.createElement('button');
+      btn.className = 'show-more-btn';
+      btn.textContent = 'Show more';
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        if (desc.textContent === shortText) {
+          desc.textContent = fullText;
+          btn.textContent = 'Show less';
+        } else {
+          desc.textContent = shortText;
+          btn.textContent = 'Show more';
+        }
+        desc.appendChild(btn);
+      };
+      desc.appendChild(btn);
+    }
+  });
+}
