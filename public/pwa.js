@@ -17,9 +17,6 @@ class PWAManager {
     // Check if app is already installed
     this.checkInstallStatus();
     
-    // Set up update notifications
-    this.setupUpdateNotifications();
-    
     // Handle online/offline status
     this.setupNetworkStatus();
   }

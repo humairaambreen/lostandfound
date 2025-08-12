@@ -1,5 +1,5 @@
-const CACHE_NAME = 'lost-and-found-v1.0.0';
-const API_CACHE_NAME = 'lost-and-found-api-v1.0.0';
+const CACHE_NAME = 'lost-and-found-v1.0.1';
+const API_CACHE_NAME = 'lost-and-found-api-v1.0.1';
 
 // Files to cache for offline functionality
 const STATIC_CACHE_FILES = [
@@ -8,8 +8,10 @@ const STATIC_CACHE_FILES = [
   '/post.html',
   '/style.css',
   '/post-custom.css',
+  '/pwa.css',
   '/app.js',
   '/post.js',
+  '/pwa.js',
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Dancing+Script:wght@700&display=swap',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
