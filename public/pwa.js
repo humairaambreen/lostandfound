@@ -45,9 +45,12 @@ class PWAManager {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
-                  // Update available
-                  this.updateAvailable = true;
-                  this.showUpdateNotification();
+                  // Only show update notification if this is a real update
+                  // and not the initial installation
+                  setTimeout(() => {
+                    this.updateAvailable = true;
+                    this.showUpdateNotification();
+                  }, 1000); // Small delay to avoid false positives
                 } else {
                   // First time installation
                   console.log('Service Worker installed for the first time');
@@ -71,28 +74,38 @@ class PWAManager {
 
   // NEW: Set up automatic cache refresh
   setupCacheRefresh() {
-    // Check for updates when the user returns to the tab
+    // Check for updates when the user returns to the tab (but not too frequently)
+    let lastUpdateCheck = 0;
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && this.serviceWorkerRegistration) {
-        console.log('Page became visible, checking for updates...');
-        this.serviceWorkerRegistration.update();
+        const now = Date.now();
+        // Only check for updates if it's been more than 5 minutes since last check
+        if (now - lastUpdateCheck > 300000) {
+          console.log('Page became visible, checking for updates...');
+          this.serviceWorkerRegistration.update();
+          lastUpdateCheck = now;
+        }
       }
     });
 
-    // Check for updates when the user comes back online
+    // Check for updates when the user comes back online (but throttled)
     window.addEventListener('online', () => {
       if (this.serviceWorkerRegistration) {
-        console.log('Back online, checking for updates...');
-        this.serviceWorkerRegistration.update();
+        const now = Date.now();
+        if (now - lastUpdateCheck > 60000) { // Only if it's been more than 1 minute
+          console.log('Back online, checking for updates...');
+          this.serviceWorkerRegistration.update();
+          lastUpdateCheck = now;
+        }
       }
     });
 
-    // Periodic update checks (every 30 seconds when active)
+    // Periodic update checks (every 10 minutes when active, not 30 seconds)
     setInterval(() => {
       if (!document.hidden && this.serviceWorkerRegistration) {
         this.serviceWorkerRegistration.update();
       }
-    }, 30000);
+    }, 600000); // 10 minutes instead of 30 seconds
   }
 
   setupInstallPrompt() {
@@ -171,6 +184,11 @@ class PWAManager {
   }
 
   showUpdateNotification() {
+    // Prevent duplicate notifications
+    if (document.getElementById('pwa-update-notification')) {
+      return;
+    }
+    
     // Remove existing update notification
     const existing = document.getElementById('pwa-update-notification');
     if (existing) existing.remove();
@@ -189,10 +207,10 @@ class PWAManager {
     
     document.body.appendChild(notification);
     
-    // Auto-hide after 15 seconds
+    // Auto-hide after 20 seconds (increased from 15)
     setTimeout(() => {
       this.dismissUpdate();
-    }, 15000);
+    }, 20000);
   }
 
   dismissUpdate() {

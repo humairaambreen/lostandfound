@@ -1,4 +1,4 @@
-const CACHE_VERSION = Date.now(); // Use timestamp for cache busting
+const CACHE_VERSION = '1.2.0'; // Use semantic versioning instead of timestamps
 const CACHE_NAME = `lost-and-found-v${CACHE_VERSION}`;
 const API_CACHE_NAME = `lost-and-found-api-v${CACHE_VERSION}`;
 
