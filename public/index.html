@@ -36,6 +36,42 @@
 <body>
   <h1 style="text-align:center; margin-top: 32px; margin-bottom: 0.5em; color: #1a2233; font-size: 2.1rem; font-weight: 700; letter-spacing: -1px;">Lost and Found</h1>
   <div id="tab-content">
+    <div id="aboutTab" class="tab-section" style="display:none;">
+      <div class="about-minimal">
+        <div class="about-hero">
+          <div class="hero-icon">🔍</div>
+          <h2>Lost & Found</h2>
+          <p class="hero-subtitle">Bringing lost items home</p>
+        </div>
+
+        <div class="about-cards">
+          <div class="about-card">
+            <div class="card-icon">🎯</div>
+            <h3>Purpose</h3>
+            <p>A dedicated platform for Krishna Engineering College students to reconnect with their lost belongings.</p>
+          </div>
+
+          <div class="about-card">
+            <div class="card-icon">⚡</div>
+            <h3>Features</h3>
+            <p>Progressive Web App with photo uploads, real-time updates, and seamless mobile experience.</p>
+          </div>
+
+          <div class="about-card author-card">
+            <div class="card-icon">👩‍💻</div>
+            <h3>Created by</h3>
+            <div class="author-info">
+              <p class="author-name">Humaira Ambreen</p>
+              <p class="author-college">Krishna Engineering College</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-footer">
+          <p>Made with ♥ for KEC students</p>
+        </div>
+      </div>
+    </div>
     <div id="feedTab" class="tab-section">
       
       <div id="feed"></div>
@@ -61,25 +97,46 @@
     </div>
   </div>
   <nav class="bottom-tabs">
+    <button class="tab-btn" id="aboutTabBtn" aria-label="About"><span>About</span></button>
     <button class="tab-btn active" id="feedsTabBtn" aria-label="Feeds"><span>Feeds</span></button>
     <button class="tab-btn" id="uploadTabBtn" aria-label="Upload"><span>Upload</span></button>
   </nav>
   <script>
     // Tab switching logic
+    const aboutTabBtn = document.getElementById('aboutTabBtn');
     const feedsTabBtn = document.getElementById('feedsTabBtn');
     const uploadTabBtn = document.getElementById('uploadTabBtn');
+    const aboutTab = document.getElementById('aboutTab');
     const feedTab = document.getElementById('feedTab');
     const uploadTab = document.getElementById('uploadTab');
-    feedsTabBtn.onclick = () => {
-      feedsTabBtn.classList.add('active');
+    
+    // About tab
+    aboutTabBtn.onclick = () => {
+      aboutTabBtn.classList.add('active');
+      feedsTabBtn.classList.remove('active');
       uploadTabBtn.classList.remove('active');
-      feedTab.style.display = '';
+      aboutTab.style.display = '';
+      feedTab.style.display = 'none';
       uploadTab.style.display = 'none';
     };
+    
+    // Feeds tab
+    feedsTabBtn.onclick = () => {
+      feedsTabBtn.classList.add('active');
+      aboutTabBtn.classList.remove('active');
+      uploadTabBtn.classList.remove('active');
+      feedTab.style.display = '';
+      aboutTab.style.display = 'none';
+      uploadTab.style.display = 'none';
+    };
+    
+    // Upload tab
     uploadTabBtn.onclick = () => {
       uploadTabBtn.classList.add('active');
+      aboutTabBtn.classList.remove('active');
       feedsTabBtn.classList.remove('active');
       uploadTab.style.display = '';
+      aboutTab.style.display = 'none';
       feedTab.style.display = 'none';
     };
   </script>
