@@ -76,7 +76,7 @@ class PWAManager {
     if (!document.getElementById('pwa-install-btn')) {
       const installButton = document.createElement('button');
       installButton.id = 'pwa-install-btn';
-      installButton.innerHTML = '📱 Install App';
+      installButton.innerHTML = 'Install App';
       installButton.className = 'pwa-install-button';
       installButton.onclick = () => this.promptInstall();
       
@@ -160,11 +160,11 @@ class PWAManager {
   setupNetworkStatus() {
     // Show network status
     window.addEventListener('online', () => {
-      this.showNetworkStatus('online', '🟢 Back online!');
+      this.showNetworkStatus('online', 'Back online!');
     });
 
     window.addEventListener('offline', () => {
-      this.showNetworkStatus('offline', '🔴 You are offline');
+      this.showNetworkStatus('offline', 'You are offline');
     });
   }
 
@@ -191,7 +191,7 @@ class PWAManager {
   showInstallSuccessMessage() {
     const message = document.createElement('div');
     message.className = 'install-success-message';
-    message.innerHTML = '✅ Lost and Found app installed successfully!';
+    message.innerHTML = 'Lost and Found app installing on your device.';
     
     document.body.appendChild(message);
     
