@@ -4,6 +4,7 @@ class PWAManager {
     this.deferredPrompt = null;
     this.isInstalled = false;
     this.serviceWorkerRegistration = null;
+    this.updateAvailable = false;
     this.init();
   }
 
@@ -19,6 +20,9 @@ class PWAManager {
     
     // Handle online/offline status
     this.setupNetworkStatus();
+    
+    // Set up cache refresh on focus (important for cache busting!)
+    this.setupCacheRefresh();
   }
 
   async registerServiceWorker() {
@@ -31,22 +35,64 @@ class PWAManager {
         this.serviceWorkerRegistration = registration;
         console.log('Service Worker registered successfully:', registration);
         
+        // Force update check on page load
+        registration.update();
+        
         // Handle updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                this.showUpdateNotification();
+              if (newWorker.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                  // Update available
+                  this.updateAvailable = true;
+                  this.showUpdateNotification();
+                } else {
+                  // First time installation
+                  console.log('Service Worker installed for the first time');
+                }
               }
             });
           }
+        });
+        
+        // Handle controller change (when new SW takes over)
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          console.log('New service worker took control, reloading...');
+          window.location.reload();
         });
         
       } catch (error) {
         console.error('Service Worker registration failed:', error);
       }
     }
+  }
+
+  // NEW: Set up automatic cache refresh
+  setupCacheRefresh() {
+    // Check for updates when the user returns to the tab
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && this.serviceWorkerRegistration) {
+        console.log('Page became visible, checking for updates...');
+        this.serviceWorkerRegistration.update();
+      }
+    });
+
+    // Check for updates when the user comes back online
+    window.addEventListener('online', () => {
+      if (this.serviceWorkerRegistration) {
+        console.log('Back online, checking for updates...');
+        this.serviceWorkerRegistration.update();
+      }
+    });
+
+    // Periodic update checks (every 30 seconds when active)
+    setInterval(() => {
+      if (!document.hidden && this.serviceWorkerRegistration) {
+        this.serviceWorkerRegistration.update();
+      }
+    }, 30000);
   }
 
   setupInstallPrompt() {
@@ -125,26 +171,35 @@ class PWAManager {
   }
 
   showUpdateNotification() {
+    // Remove existing update notification
+    const existing = document.getElementById('pwa-update-notification');
+    if (existing) existing.remove();
+    
     // Create update notification
     const notification = document.createElement('div');
     notification.id = 'pwa-update-notification';
     notification.className = 'pwa-update-notification';
     notification.innerHTML = `
       <div class="update-content">
-        <span>🚀 New version available!</span>
+        <span>✨ New version available!</span>
         <button onclick="pwaManager.updateApp()" class="update-btn">Update</button>
-        <button onclick="this.parentElement.parentElement.remove()" class="dismiss-btn">×</button>
+        <button onclick="pwaManager.dismissUpdate()" class="dismiss-btn">Later</button>
       </div>
     `;
     
     document.body.appendChild(notification);
     
-    // Auto-hide after 10 seconds
+    // Auto-hide after 15 seconds
     setTimeout(() => {
-      if (notification.parentElement) {
-        notification.remove();
-      }
-    }, 10000);
+      this.dismissUpdate();
+    }, 15000);
+  }
+
+  dismissUpdate() {
+    const notification = document.getElementById('pwa-update-notification');
+    if (notification) {
+      notification.remove();
+    }
   }
 
   async updateApp() {
@@ -152,8 +207,35 @@ class PWAManager {
       // Tell the waiting service worker to activate
       this.serviceWorkerRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
       
-      // Reload the page to load the new version
+      // The controllerchange event will trigger a reload
+    } else {
+      // Force reload if no waiting worker
       window.location.reload();
+    }
+  }
+
+  // NEW: Clear all caches manually
+  async clearAllCaches() {
+    try {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map(cacheName => caches.delete(cacheName))
+      );
+      console.log('All caches cleared');
+      
+      // Also tell service worker to clear its caches
+      if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+        const messageChannel = new MessageChannel();
+        this.serviceWorkerRegistration.active.postMessage(
+          { type: 'CLEAR_CACHE' },
+          [messageChannel.port2]
+        );
+      }
+      
+      // Force reload to get fresh content
+      window.location.reload();
+    } catch (error) {
+      console.error('Error clearing caches:', error);
     }
   }
 
@@ -161,6 +243,10 @@ class PWAManager {
     // Show network status
     window.addEventListener('online', () => {
       this.showNetworkStatus('online', 'Back online!');
+      // Check for updates when coming back online
+      if (this.serviceWorkerRegistration) {
+        this.serviceWorkerRegistration.update();
+      }
     });
 
     window.addEventListener('offline', () => {
@@ -191,7 +277,7 @@ class PWAManager {
   showInstallSuccessMessage() {
     const message = document.createElement('div');
     message.className = 'install-success-message';
-    message.innerHTML = 'Lost and Found app installing on your device.';
+    message.innerHTML = '✅ Lost and Found app installed successfully!';
     
     document.body.appendChild(message);
     
@@ -217,3 +303,7 @@ const pwaManager = new PWAManager();
 
 // Make it globally available
 window.pwaManager = pwaManager;
+
+// Add some global functions for debugging cache issues
+window.clearAppCache = () => pwaManager.clearAllCaches();
+window.forceAppUpdate = () => pwaManager.updateApp();

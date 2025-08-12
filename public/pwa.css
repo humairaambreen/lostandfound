@@ -31,7 +31,7 @@
   50% { transform: scale(1.05); }
 }
 
-/* Update Notification */
+/* Update Notification - Enhanced */
 .pwa-update-notification {
   position: fixed;
   top: 20px;
@@ -45,45 +45,57 @@
   z-index: 1001;
   animation: slideDown 0.3s ease;
   max-width: 90vw;
-  width: 300px;
+  width: 320px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .update-content {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-family: 'Poppins', sans-serif;
   font-size: 14px;
+  font-weight: 500;
+}
+
+.update-content span {
+  flex: 1;
+  color: #1a2233;
 }
 
 .update-btn {
   background: var(--color-primary, #A4C3A2);
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .update-btn:hover {
   background: #7ca982;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .dismiss-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: #999;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #666;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
   cursor: pointer;
-  padding: 0;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dismiss-btn:hover {
+  background: #eee;
+  color: #333;
 }
 
 @keyframes slideDown {

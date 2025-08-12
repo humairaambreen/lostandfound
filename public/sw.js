@@ -1,5 +1,6 @@
-const CACHE_NAME = 'lost-and-found-v1.0.1';
-const API_CACHE_NAME = 'lost-and-found-api-v1.0.1';
+const CACHE_VERSION = Date.now(); // Use timestamp for cache busting
+const CACHE_NAME = `lost-and-found-v${CACHE_VERSION}`;
+const API_CACHE_NAME = `lost-and-found-api-v${CACHE_VERSION}`;
 
 // Files to cache for offline functionality
 const STATIC_CACHE_FILES = [
@@ -25,7 +26,7 @@ const API_ENDPOINTS = [
 
 // Install event - cache static files
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
+  console.log('Service Worker installing with cache version:', CACHE_VERSION);
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -50,6 +51,7 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
+            // Delete all old caches
             if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
               console.log('Deleting old cache:', cacheName);
               return caches.delete(cacheName);
@@ -64,7 +66,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - handle network requests
+// Fetch event - handle network requests with network-first for static files
 self.addEventListener('fetch', (event) => {
   const requestURL = new URL(event.request.url);
   
@@ -74,8 +76,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Handle static file requests
-  event.respondWith(handleStaticRequest(event.request));
+  // Handle static file requests with network-first strategy
+  event.respondWith(handleStaticRequestNetworkFirst(event.request));
 });
 
 // Handle API requests with network-first strategy
@@ -130,26 +132,32 @@ async function handleAPIRequest(request) {
   }
 }
 
-// Handle static file requests with cache-first strategy
-async function handleStaticRequest(request) {
+// Handle static file requests with network-first strategy (FIXED!)
+async function handleStaticRequestNetworkFirst(request) {
   const cache = await caches.open(CACHE_NAME);
-  const cachedResponse = await cache.match(request);
-  
-  if (cachedResponse) {
-    return cachedResponse;
-  }
   
   try {
+    // Try network first for better cache busting
     const networkResponse = await fetch(request);
     
-    // Cache successful responses
     if (networkResponse.ok) {
+      // Cache the fresh response
       cache.put(request, networkResponse.clone());
+      return networkResponse;
     }
     
-    return networkResponse;
+    // If network fails, fall back to cache
+    const cachedResponse = await cache.match(request);
+    return cachedResponse || networkResponse;
+    
   } catch (error) {
-    console.log('Network and cache miss for:', request.url);
+    console.log('Network request failed, trying cache for:', request.url);
+    
+    // Fallback to cache
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
     
     // Return offline fallback for HTML pages
     if (request.destination === 'document') {
@@ -160,6 +168,25 @@ async function handleStaticRequest(request) {
     throw error;
   }
 }
+
+// Listen for messages from the main thread
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    // Clear all caches when requested
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => caches.delete(cacheName))
+      );
+    }).then(() => {
+      console.log('All caches cleared');
+      event.ports[0].postMessage({ success: true });
+    });
+  }
+});
 
 // Handle background sync for posting items when back online
 self.addEventListener('sync', (event) => {
@@ -219,4 +246,4 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-console.log('Service Worker script loaded');
+console.log('Service Worker script loaded with version:', CACHE_VERSION);

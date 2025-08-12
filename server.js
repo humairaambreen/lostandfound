@@ -4,6 +4,26 @@ const path = require('path');
 const app = express();
 
 app.use(express.json({ limit: '10mb' }));
+
+// Cache busting middleware for static files
+app.use((req, res, next) => {
+  // Don't cache HTML, CSS, JS files to prevent stale content
+  if (req.url.endsWith('.html') || req.url.endsWith('.css') || req.url.endsWith('.js') || req.url === '/') {
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+  }
+  // Allow caching for images and other assets
+  else if (req.url.match(/\.(jpg|jpeg|png|gif|ico|svg)$/)) {
+    res.set({
+      'Cache-Control': 'public, max-age=86400' // Cache images for 1 day
+    });
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // PWA specific routes
