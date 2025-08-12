@@ -4,10 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lost and Found</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Find and post lost items in your community">
+  <meta name="theme-color" content="#A4C3A2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Lost&Found">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- App Icons -->
+  <link rel="icon" type="image/jpeg" href="/icons/favicon.jpeg">
+  <link rel="icon" type="image/jpeg" sizes="192x192" href="/icons/icon-192x192.jpeg">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.jpeg">
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.jpeg">
+  <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.jpeg">
+  <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.jpeg">
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="pwa.css" />
 </head>
 <body>
   <h1 style="text-align:center; margin-top: 32px; margin-bottom: 0.5em; color: #1a2233; font-size: 2.1rem; font-weight: 700; letter-spacing: -1px;">Lost and Found</h1>
@@ -61,6 +85,7 @@
   </script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="pwa.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

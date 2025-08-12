@@ -1,0 +1,15 @@
+# Placeholder for icon-512x512.png
+# 
+# This is a placeholder file for the 512x512 PWA icon.
+# Replace this file with an actual PNG icon of size 512x512 pixels.
+# 
+# The icon should represent the Lost and Found app and be saved as:
+# icon-512x512.png
+# 
+# SVG template for reference:
+
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#A4C3A2" rx="20"/>
+  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="128" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central">L&F</text>
+</svg>
+

@@ -3,9 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Post Details</title>
+  <title>Post Details - Lost and Found</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="View details of lost and found items">
+  <meta name="theme-color" content="#A4C3A2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Lost&Found">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- App Icons -->
+  <link rel="icon" type="image/jpeg" href="/icons/favicon.jpeg">
+  <link rel="icon" type="image/jpeg" sizes="192x192" href="/icons/icon-192x192.jpeg">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.jpeg">
+  
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="post-custom.css" />
+  <link rel="stylesheet" href="pwa.css" />
 </head>
   <body>
     <button class="back-arrow-btn" onclick="window.history.back()" aria-label="Back to Feed">
@@ -34,6 +53,7 @@
         </section>
       </div>
     </main>
+    <script src="pwa.js"></script>
     <script src="post.js"></script>
   </body>
 </html>

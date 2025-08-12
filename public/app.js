@@ -53,9 +53,50 @@ const form = document.getElementById('itemForm');
 const feed = document.getElementById('feed');
 const submitBtn = form.querySelector('button[type="submit"]');
 
+// PWA: Check if user is offline
+function isOnline() {
+  return navigator.onLine;
+}
+
+// PWA: Show offline notification
+function showOfflineMessage() {
+  const existing = document.getElementById('offline-indicator');
+  if (!existing && !isOnline()) {
+    const indicator = document.createElement('div');
+    indicator.id = 'offline-indicator';
+    indicator.className = 'offline-indicator';
+    indicator.textContent = '📵 You are offline - Some features may be limited';
+    document.body.appendChild(indicator);
+  }
+}
+
+// PWA: Hide offline notification
+function hideOfflineMessage() {
+  const indicator = document.getElementById('offline-indicator');
+  if (indicator) {
+    indicator.remove();
+  }
+}
+
+// PWA: Monitor network status
+window.addEventListener('online', hideOfflineMessage);
+window.addEventListener('offline', showOfflineMessage);
+
+// PWA: Check initial network status
+if (!isOnline()) {
+  showOfflineMessage();
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (submitBtn.disabled) return;
+  
+  // PWA: Check if online before submitting
+  if (!isOnline()) {
+    alert('You are currently offline. Please check your internet connection and try again.');
+    return;
+  }
+  
   submitBtn.disabled = true;
   submitBtn.textContent = 'Uploading...';
   const name = document.getElementById('name').value;
@@ -82,7 +123,8 @@ form.addEventListener('submit', async (e) => {
       form.reset();
       loadFeed();
     } catch (err) {
-      alert('Error uploading item.');
+      console.error('Upload error:', err);
+      alert('Error uploading item. Please try again.');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit Item';
@@ -135,7 +177,25 @@ async function loadFeed(showSkeleton = true) {
   await new Promise(resolve => setTimeout(resolve, showSkeleton ? 3000 : 0));
   try {
     const res = await fetch('/api/items');
+    
+    // PWA: Handle offline response
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const items = await res.json();
+    
+    // PWA: Handle offline data structure
+    if (items.offline) {
+      feed.innerHTML = `
+        <div class="offline-message" style="text-align: center; padding: 2em; color: #666;">
+          <h3>📵 You are currently offline</h3>
+          <p>Please check your internet connection to view the latest items.</p>
+        </div>
+      `;
+      return;
+    }
+    
     feed.innerHTML = items.map(item => {
       const date = item.timestamp ? new Date(item.timestamp) : null;
       const dateString = date ? date.toLocaleString() : '';
@@ -418,7 +478,29 @@ async function loadFeed(showSkeleton = true) {
 
     }); // End of comment form submission handler
   } catch (err) {
-    feed.innerHTML = '<div>Error loading feed.</div>';
+    console.error('Feed loading error:', err);
+    // PWA: Better error handling for offline mode
+    if (!isOnline()) {
+      feed.innerHTML = `
+        <div class="offline-message" style="text-align: center; padding: 2em; color: #666;">
+          <h3>📵 You are currently offline</h3>
+          <p>Please check your internet connection to view the latest items.</p>
+          <button onclick="location.reload()" style="margin-top: 1em; padding: 0.5em 1em; background: var(--color-primary); color: white; border: none; border-radius: 0.5em; cursor: pointer;">
+            Try Again
+          </button>
+        </div>
+      `;
+    } else {
+      feed.innerHTML = `
+        <div style="text-align: center; padding: 2em; color: #666;">
+          <h3>Error loading feed</h3>
+          <p>Please try again later.</p>
+          <button onclick="loadFeed(false)" style="margin-top: 1em; padding: 0.5em 1em; background: var(--color-primary); color: white; border: none; border-radius: 0.5em; cursor: pointer;">
+            Retry
+          </button>
+        </div>
+      `;
+    }
   }
 } // End of loadFeed
 

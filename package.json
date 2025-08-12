@@ -4,7 +4,10 @@
   "description": "Lost and Found website using Node.js, HTML, CSS, JS, and Firebase Realtime Database.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build:icons": "node create-icons.js",
+    "build:pwa": "npm run build:icons"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

@@ -1,0 +1,63 @@
+{
+  "name": "Lost and Found",
+  "short_name": "Lost&Found",
+  "description": "Find and post lost items in your community",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EAE7D6",
+  "theme_color": "#A4C3A2",
+  "orientation": "portrait-primary",
+  "categories": ["utilities", "social"],
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "icons/icon-72x72.jpeg",
+      "sizes": "72x72",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-96x96.jpeg",
+      "sizes": "96x96",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-128x128.jpeg",
+      "sizes": "128x128",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-144x144.jpeg",
+      "sizes": "144x144",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-152x152.jpeg",
+      "sizes": "152x152",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192x192.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-384x384.jpeg",
+      "sizes": "384x384",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512x512.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
