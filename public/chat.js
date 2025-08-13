@@ -5,6 +5,8 @@ class ChatManager {
     this.messagesContainer = document.getElementById('chatMessages');
     this.messageInput = document.getElementById('chatMessageInput');
     this.sendButton = document.getElementById('sendMessageBtn');
+    this.imageUploadBtn = document.getElementById('imageUploadBtn');
+    this.chatImageInput = document.getElementById('chatImageInput');
     this.nameInput = document.getElementById('chatName');
     this.joinButton = document.getElementById('joinChatBtn');
     this.chatHeaderTitle = document.getElementById('chatHeaderTitle');
@@ -16,6 +18,9 @@ class ChatManager {
     this.confirmLeaveBtn = document.getElementById('confirmLeaveBtn');
     this.namePrompt = document.getElementById('namePrompt');
     this.chatInterface = document.getElementById('chatInterface');
+    this.imageOverlay = document.getElementById('imageOverlay');
+    this.overlayImage = document.getElementById('overlayImage');
+    this.closeImageOverlay = document.getElementById('closeImageOverlay');
     this.messages = []; // Store messages locally to track changes
     this.replyingTo = null; // Store the message being replied to
     this.longPressTimer = null;
@@ -54,6 +59,8 @@ class ChatManager {
     });
     
     this.sendButton.addEventListener('click', () => this.handleSendMessage());
+    this.imageUploadBtn.addEventListener('click', () => this.chatImageInput.click());
+    this.chatImageInput.addEventListener('change', (e) => this.handleImageUpload(e));
     this.messageInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         this.handleSendMessage();
@@ -70,6 +77,14 @@ class ChatManager {
       if (this.currentUser) {
         this.loadMessages();
         this.scrollToBottom();
+      }
+    });
+
+    // Image overlay event listeners
+    this.closeImageOverlay.addEventListener('click', () => this.hideImageOverlay());
+    this.imageOverlay.addEventListener('click', (e) => {
+      if (e.target === this.imageOverlay) {
+        this.hideImageOverlay();
       }
     });
   }
@@ -267,6 +282,78 @@ class ChatManager {
     }
   }
 
+  async handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    this.imageUploadBtn.disabled = true;
+    
+    try {
+      // Convert image to base64
+      const base64 = await this.convertToBase64(file);
+      
+      const messageData = {
+        name: this.currentUser,
+        message: '', // Empty message for image-only messages
+        image: base64,
+        imageType: file.type
+      };
+
+      // Add reply information if replying to a message
+      if (this.replyingTo) {
+        messageData.replyTo = {
+          name: this.replyingTo.name,
+          message: this.replyingTo.message,
+          timestamp: this.replyingTo.timestamp
+        };
+      }
+
+      const response = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(messageData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send image');
+      }
+
+      this.cancelReply(); // Clear reply state
+      this.loadMessages();
+      this.scrollToBottom();
+    } catch (error) {
+      console.error('Error sending image:', error);
+      alert('Failed to send image. Please try again.');
+    } finally {
+      this.imageUploadBtn.disabled = false;
+      // Clear the file input
+      this.chatImageInput.value = '';
+    }
+  }
+
+  convertToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+
   async loadMessages() {
     try {
       const response = await fetch('/api/chat/messages');
@@ -336,6 +423,7 @@ class ChatManager {
       
       // Check if this message is a reply
       const isReply = msg.replyTo;
+      const hasImage = msg.image;
       
       messageElement.innerHTML = `
         ${showHeader ? `
@@ -347,11 +435,16 @@ class ChatManager {
         ${isReply ? `
           <div class="reply-reference">
             <div class="reply-to-name">${this.escapeHtml(msg.replyTo.name)}</div>
-            <div class="reply-to-message">${this.escapeHtml(msg.replyTo.message.substring(0, 50))}${msg.replyTo.message.length > 50 ? '...' : ''}</div>
+            <div class="reply-to-message">${msg.replyTo.image ? '📷 Image' : this.escapeHtml(msg.replyTo.message.substring(0, 50))}${!msg.replyTo.image && msg.replyTo.message.length > 50 ? '...' : ''}</div>
           </div>
         ` : ''}
-        <div class="message-content">
-          ${this.escapeHtml(msg.message)}
+        <div class="message-content${hasImage ? ' has-image' : ''}">
+          ${hasImage ? `
+            <div class="message-image-container">
+              <img src="${msg.image}" alt="Shared image" class="message-image" onclick="window.chatManager.showImageOverlay('${msg.image}')" />
+            </div>
+          ` : ''}
+          ${msg.message ? this.escapeHtml(msg.message) : ''}
         </div>
         <div class="swipe-indicator">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -402,6 +495,7 @@ class ChatManager {
       
       // Check if this message is a reply
       const isReply = msg.replyTo;
+      const hasImage = msg.image;
       
       messageElement.innerHTML = `
         ${showHeader ? `
@@ -413,11 +507,16 @@ class ChatManager {
         ${isReply ? `
           <div class="reply-reference">
             <div class="reply-to-name">${this.escapeHtml(msg.replyTo.name)}</div>
-            <div class="reply-to-message">${this.escapeHtml(msg.replyTo.message.substring(0, 50))}${msg.replyTo.message.length > 50 ? '...' : ''}</div>
+            <div class="reply-to-message">${msg.replyTo.image ? '📷 Image' : this.escapeHtml(msg.replyTo.message.substring(0, 50))}${!msg.replyTo.image && msg.replyTo.message.length > 50 ? '...' : ''}</div>
           </div>
         ` : ''}
-        <div class="message-content">
-          ${this.escapeHtml(msg.message)}
+        <div class="message-content${hasImage ? ' has-image' : ''}">
+          ${hasImage ? `
+            <div class="message-image-container">
+              <img src="${msg.image}" alt="Shared image" class="message-image" onclick="window.chatManager.showImageOverlay('${msg.image}')" />
+            </div>
+          ` : ''}
+          ${msg.message ? this.escapeHtml(msg.message) : ''}
         </div>
         <div class="swipe-indicator">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -460,6 +559,20 @@ class ChatManager {
       "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, (m) => map[m]);
+  }
+
+  showImageOverlay(imageSrc) {
+    this.overlayImage.src = imageSrc;
+    this.imageOverlay.style.display = 'block';
+    // Prevent body scroll when overlay is open
+    document.body.style.overflow = 'hidden';
+  }
+
+  hideImageOverlay() {
+    this.imageOverlay.style.display = 'none';
+    this.overlayImage.src = '';
+    // Restore body scroll
+    document.body.style.overflow = '';
   }
 
   // Swipe to reply functionality

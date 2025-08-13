@@ -177,32 +177,39 @@ app.get('/api/items/:id/comments', async (req, res) => {
 // Chat API endpoints
 app.post('/api/chat/messages', async (req, res) => {
   try {
-    const { name, message, replyTo } = req.body;
+    const { name, message, image, imageType, replyTo } = req.body;
     
-    if (!name || !message) {
-      return res.status(400).json({ error: 'Missing name or message' });
+    if (!name || (!message && !image)) {
+      return res.status(400).json({ error: 'Missing name or message/image' });
     }
     
     // Validate input
     if (name.length > 30) {
       return res.status(400).json({ error: 'Name must be 30 characters or less' });
     }
-    if (message.length > 500) {
+    if (message && message.length > 500) {
       return res.status(400).json({ error: 'Message must be 500 characters or less' });
     }
     
     const chatMessage = {
       name: name.trim(),
-      message: message.trim(),
+      message: message ? message.trim() : '',
       timestamp: Date.now()
     };
+    
+    // Add image data if present
+    if (image && imageType) {
+      chatMessage.image = image;
+      chatMessage.imageType = imageType;
+    }
     
     // Add reply information if present
     if (replyTo) {
       chatMessage.replyTo = {
         name: replyTo.name,
-        message: replyTo.message.substring(0, 100), // Limit reply preview to 100 chars
-        timestamp: replyTo.timestamp
+        message: replyTo.message ? replyTo.message.substring(0, 100) : '', // Limit reply preview to 100 chars
+        timestamp: replyTo.timestamp,
+        image: replyTo.image ? true : false // Just track if original was an image
       };
     }
     
