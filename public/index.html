@@ -105,6 +105,32 @@
       <div id="feed"></div>
       <div id="end-of-feed" class="end-of-feed">This is the end of the feed</div>
     </div>
+    <div id="chatTab" class="tab-section" style="display:none;">
+      <div id="chatContainer" class="chat-container">
+        <div id="namePrompt" class="name-prompt" style="display:flex;">
+          <h3>Welcome to Public Chat!</h3>
+          <p>Enter your name to start chatting with the community:</p>
+          <div class="name-input-container">
+            <input type="text" id="chatName" placeholder="Your Name" maxlength="30" />
+            <button id="joinChatBtn" type="button">Join Chat</button>
+          </div>
+        </div>
+        <div id="chatInterface" class="chat-interface" style="display:none;">
+          <div class="chat-header">
+            <h3>Public Chat</h3>
+            <div class="chat-user">
+              Welcome, <span id="currentUserName"></span>!
+              <button id="leaveChatBtn" type="button">Leave Chat</button>
+            </div>
+          </div>
+          <div id="chatMessages" class="chat-messages"></div>
+          <div class="chat-input-container">
+            <input type="text" id="chatMessageInput" placeholder="Type your message..." maxlength="500" />
+            <button id="sendMessageBtn" type="button">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="uploadTab" class="tab-section" style="display:none;">
       <form id="itemForm">
         <input type="text" id="name" placeholder="Your Name" required />
@@ -127,24 +153,29 @@
   <nav class="bottom-tabs">
     <button class="tab-btn" id="aboutTabBtn" aria-label="About"><span>About</span></button>
     <button class="tab-btn active" id="feedsTabBtn" aria-label="Feeds"><span>Feeds</span></button>
+    <button class="tab-btn" id="chatTabBtn" aria-label="Chat"><span>Chat</span></button>
     <button class="tab-btn" id="uploadTabBtn" aria-label="Upload"><span>Upload</span></button>
   </nav>
   <script>
     // Tab switching logic
     const aboutTabBtn = document.getElementById('aboutTabBtn');
     const feedsTabBtn = document.getElementById('feedsTabBtn');
+    const chatTabBtn = document.getElementById('chatTabBtn');
     const uploadTabBtn = document.getElementById('uploadTabBtn');
     const aboutTab = document.getElementById('aboutTab');
     const feedTab = document.getElementById('feedTab');
+    const chatTab = document.getElementById('chatTab');
     const uploadTab = document.getElementById('uploadTab');
     
     // About tab
     aboutTabBtn.onclick = () => {
       aboutTabBtn.classList.add('active');
       feedsTabBtn.classList.remove('active');
+      chatTabBtn.classList.remove('active');
       uploadTabBtn.classList.remove('active');
       aboutTab.style.display = '';
       feedTab.style.display = 'none';
+      chatTab.style.display = 'none';
       uploadTab.style.display = 'none';
     };
     
@@ -152,9 +183,23 @@
     feedsTabBtn.onclick = () => {
       feedsTabBtn.classList.add('active');
       aboutTabBtn.classList.remove('active');
+      chatTabBtn.classList.remove('active');
       uploadTabBtn.classList.remove('active');
       feedTab.style.display = '';
       aboutTab.style.display = 'none';
+      chatTab.style.display = 'none';
+      uploadTab.style.display = 'none';
+    };
+    
+    // Chat tab
+    chatTabBtn.onclick = () => {
+      chatTabBtn.classList.add('active');
+      aboutTabBtn.classList.remove('active');
+      feedsTabBtn.classList.remove('active');
+      uploadTabBtn.classList.remove('active');
+      chatTab.style.display = '';
+      aboutTab.style.display = 'none';
+      feedTab.style.display = 'none';
       uploadTab.style.display = 'none';
     };
     
@@ -163,14 +208,17 @@
       uploadTabBtn.classList.add('active');
       aboutTabBtn.classList.remove('active');
       feedsTabBtn.classList.remove('active');
+      chatTabBtn.classList.remove('active');
       uploadTab.style.display = '';
       aboutTab.style.display = 'none';
       feedTab.style.display = 'none';
+      chatTab.style.display = 'none';
     };
   </script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="pwa.js"></script>
   <script src="app.js"></script>
+  <script src="chat.js"></script>
 </body>
 </html>

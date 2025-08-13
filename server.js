@@ -151,6 +151,7 @@ app.get('/api/items/:id/recent-comments', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch recent comments' });
   }
 });
+
 app.get('/api/items/:id/comments', async (req, res) => {
   try {
     const postId = req.params.id;
@@ -170,6 +171,53 @@ app.get('/api/items/:id/comments', async (req, res) => {
     res.json(comments);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
+// Chat API endpoints
+app.post('/api/chat/messages', async (req, res) => {
+  try {
+    const { name, message } = req.body;
+    if (!name || !message) {
+      return res.status(400).json({ error: 'Missing name or message' });
+    }
+    
+    // Validate input
+    if (name.length > 30) {
+      return res.status(400).json({ error: 'Name must be 30 characters or less' });
+    }
+    if (message.length > 500) {
+      return res.status(400).json({ error: 'Message must be 500 characters or less' });
+    }
+    
+    const chatMessage = {
+      name: name.trim(),
+      message: message.trim(),
+      timestamp: Date.now()
+    };
+    
+    const ref = await db.ref('chat/messages').push(chatMessage);
+    res.json({ success: true, id: ref.key });
+  } catch (err) {
+    console.error('Error sending chat message:', err);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+app.get('/api/chat/messages', async (req, res) => {
+  try {
+    const snapshot = await db.ref('chat/messages').orderByChild('timestamp').limitToLast(100).once('value');
+    const messages = [];
+    snapshot.forEach(child => {
+      const val = child.val();
+      val._id = child.key;
+      messages.push(val);
+    });
+    // Don't reverse - keep chronological order (oldest first)
+    res.json(messages);
+  } catch (err) {
+    console.error('Error fetching chat messages:', err);
+    res.status(500).json({ error: 'Failed to fetch messages' });
   }
 });
 
