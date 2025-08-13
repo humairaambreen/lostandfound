@@ -177,7 +177,8 @@ app.get('/api/items/:id/comments', async (req, res) => {
 // Chat API endpoints
 app.post('/api/chat/messages', async (req, res) => {
   try {
-    const { name, message } = req.body;
+    const { name, message, replyTo } = req.body;
+    
     if (!name || !message) {
       return res.status(400).json({ error: 'Missing name or message' });
     }
@@ -195,6 +196,15 @@ app.post('/api/chat/messages', async (req, res) => {
       message: message.trim(),
       timestamp: Date.now()
     };
+    
+    // Add reply information if present
+    if (replyTo) {
+      chatMessage.replyTo = {
+        name: replyTo.name,
+        message: replyTo.message.substring(0, 100), // Limit reply preview to 100 chars
+        timestamp: replyTo.timestamp
+      };
+    }
     
     const ref = await db.ref('chat/messages').push(chatMessage);
     res.json({ success: true, id: ref.key });

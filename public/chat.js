@@ -7,10 +7,19 @@ class ChatManager {
     this.sendButton = document.getElementById('sendMessageBtn');
     this.nameInput = document.getElementById('chatName');
     this.joinButton = document.getElementById('joinChatBtn');
-    this.leaveButton = document.getElementById('leaveChatBtn');
+    this.chatHeaderTitle = document.getElementById('chatHeaderTitle');
+    this.chatHeaderMenu = document.getElementById('chatHeaderMenu');
+    this.leaveChatMenuItem = document.getElementById('leaveChatMenuItem');
+    this.clearChatMenuItem = document.getElementById('clearChatMenuItem');
+    this.leaveChatModal = document.getElementById('leaveChatModal');
+    this.cancelLeaveBtn = document.getElementById('cancelLeaveBtn');
+    this.confirmLeaveBtn = document.getElementById('confirmLeaveBtn');
     this.namePrompt = document.getElementById('namePrompt');
     this.chatInterface = document.getElementById('chatInterface');
     this.messages = []; // Store messages locally to track changes
+    this.replyingTo = null; // Store the message being replied to
+    this.longPressTimer = null;
+    this.isLongPressing = false;
     
     this.init();
   }
@@ -24,7 +33,26 @@ class ChatManager {
 
     // Event listeners
     this.joinButton.addEventListener('click', () => this.handleJoinChat());
-    this.leaveButton.addEventListener('click', () => this.handleLeaveChat());
+    this.setupHeaderLongPress();
+    this.leaveChatMenuItem.addEventListener('click', () => this.handleLeaveChat());
+    this.clearChatMenuItem.addEventListener('click', () => this.handleClearMessages());
+    this.cancelLeaveBtn.addEventListener('click', () => this.hideLeaveChatModal());
+    this.confirmLeaveBtn.addEventListener('click', () => this.confirmLeaveChat());
+    
+    // Close modal when clicking outside
+    this.leaveChatModal.addEventListener('click', (e) => {
+      if (e.target === this.leaveChatModal) {
+        this.hideLeaveChatModal();
+      }
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!this.chatHeaderTitle.contains(e.target) && !this.chatHeaderMenu.contains(e.target)) {
+        this.hideHeaderMenu();
+      }
+    });
+    
     this.sendButton.addEventListener('click', () => this.handleSendMessage());
     this.messageInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
@@ -44,6 +72,84 @@ class ChatManager {
         this.scrollToBottom();
       }
     });
+  }
+
+  setupHeaderLongPress() {
+    // Touch events for mobile
+    this.chatHeaderTitle.addEventListener('touchstart', (e) => {
+      if (!this.currentUser) return;
+      
+      this.isLongPressing = false;
+      this.longPressTimer = setTimeout(() => {
+        this.isLongPressing = true;
+        this.showHeaderMenu();
+        // Add haptic feedback if available
+        if ('vibrate' in navigator) {
+          navigator.vibrate(50);
+        }
+      }, 500); // 500ms long press
+    });
+
+    this.chatHeaderTitle.addEventListener('touchend', (e) => {
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+      }
+      
+      // If it wasn't a long press, hide menu if it's showing
+      if (!this.isLongPressing && this.chatHeaderMenu.style.display === 'block') {
+        this.hideHeaderMenu();
+      }
+    });
+
+    this.chatHeaderTitle.addEventListener('touchmove', (e) => {
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+      }
+    });
+
+    // Mouse events for desktop
+    this.chatHeaderTitle.addEventListener('mousedown', (e) => {
+      if (!this.currentUser) return;
+      
+      this.isLongPressing = false;
+      this.longPressTimer = setTimeout(() => {
+        this.isLongPressing = true;
+        this.showHeaderMenu();
+      }, 500);
+    });
+
+    this.chatHeaderTitle.addEventListener('mouseup', (e) => {
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+      }
+      
+      if (!this.isLongPressing && this.chatHeaderMenu.style.display === 'block') {
+        this.hideHeaderMenu();
+      }
+    });
+
+    this.chatHeaderTitle.addEventListener('mouseleave', (e) => {
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+      }
+    });
+  }
+
+  showHeaderMenu() {
+    this.chatHeaderMenu.style.display = 'block';
+  }
+
+  hideHeaderMenu() {
+    this.chatHeaderMenu.style.display = 'none';
+  }
+
+  handleClearMessages() {
+    this.hideHeaderMenu();
+    
+    if (confirm('Are you sure you want to clear all messages from your view? This will only clear them locally.')) {
+      this.messagesContainer.innerHTML = '<div class="chat-empty">Messages cleared locally. New messages will appear here.</div>';
+      this.messages = [];
+    }
   }
 
   handleJoinChat() {
@@ -73,9 +179,23 @@ class ChatManager {
   }
 
   handleLeaveChat() {
-    if (confirm('Are you sure you want to leave the chat?')) {
-      this.leaveChat();
-    }
+    this.hideHeaderMenu();
+    this.showLeaveChatModal();
+  }
+  
+  showLeaveChatModal() {
+    this.leaveChatModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+  }
+  
+  hideLeaveChatModal() {
+    this.leaveChatModal.style.display = 'none';
+    document.body.style.overflow = ''; // Restore scrolling
+  }
+  
+  confirmLeaveChat() {
+    this.hideLeaveChatModal();
+    this.leaveChat();
   }
 
   leaveChat() {
@@ -108,15 +228,26 @@ class ChatManager {
     this.sendButton.textContent = 'Sending...';
 
     try {
+      const messageData = {
+        name: this.currentUser,
+        message: message
+      };
+
+      // Add reply information if replying to a message
+      if (this.replyingTo) {
+        messageData.replyTo = {
+          name: this.replyingTo.name,
+          message: this.replyingTo.message,
+          timestamp: this.replyingTo.timestamp
+        };
+      }
+
       const response = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          name: this.currentUser,
-          message: message
-        })
+        body: JSON.stringify(messageData)
       });
 
       if (!response.ok) {
@@ -124,6 +255,7 @@ class ChatManager {
       }
 
       this.messageInput.value = '';
+      this.cancelReply(); // Clear reply state
       this.loadMessages();
       this.scrollToBottom();
     } catch (error) {
@@ -187,7 +319,10 @@ class ChatManager {
     // Sort messages by timestamp to ensure proper order (oldest first)
     const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
 
-    const messagesHTML = sortedMessages.map((msg, index) => {
+    // Clear container and rebuild
+    this.messagesContainer.innerHTML = '';
+
+    sortedMessages.forEach((msg, index) => {
       const isOwn = msg.name === this.currentUser;
       const timestamp = new Date(msg.timestamp);
       const timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -196,22 +331,38 @@ class ChatManager {
       const prevMsg = index > 0 ? sortedMessages[index - 1] : null;
       const showHeader = !prevMsg || prevMsg.name !== msg.name;
       
-      return `
-        <div class="chat-message ${isOwn ? 'own' : 'other'} ${showHeader ? 'first-in-group' : 'continuation'}">
-          ${showHeader ? `
-            <div class="message-header">
-              <span class="message-sender">${this.escapeHtml(msg.name)}</span>
-              <span class="message-time">${timeString}</span>
-            </div>
-          ` : ''}
-          <div class="message-content">
-            ${this.escapeHtml(msg.message)}
+      const messageElement = document.createElement('div');
+      messageElement.className = `chat-message ${isOwn ? 'own' : 'other'} ${showHeader ? 'first-in-group' : 'continuation'}${msg.replyTo ? ' replied-message' : ''}`;
+      
+      // Check if this message is a reply
+      const isReply = msg.replyTo;
+      
+      messageElement.innerHTML = `
+        ${showHeader ? `
+          <div class="message-header">
+            <span class="message-sender">${this.escapeHtml(msg.name)}</span>
+            <span class="message-time">${timeString}</span>
           </div>
+        ` : ''}
+        ${isReply ? `
+          <div class="reply-reference">
+            <div class="reply-to-name">${this.escapeHtml(msg.replyTo.name)}</div>
+            <div class="reply-to-message">${this.escapeHtml(msg.replyTo.message.substring(0, 50))}${msg.replyTo.message.length > 50 ? '...' : ''}</div>
+          </div>
+        ` : ''}
+        <div class="message-content">
+          ${this.escapeHtml(msg.message)}
+        </div>
+        <div class="swipe-indicator">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18m-9-9l9 9-9 9"/>
+          </svg>
         </div>
       `;
-    }).join('');
-
-    this.messagesContainer.innerHTML = messagesHTML;
+      
+      this.messagesContainer.appendChild(messageElement);
+      this.setupSwipeHandlers(messageElement, msg);
+    });
   }
 
   appendNewMessages(newMessages) {
@@ -229,7 +380,7 @@ class ChatManager {
     const lastDisplayedMessage = this.messages.length > newMessages.length ? 
       this.messages[this.messages.length - newMessages.length - 1] : null;
     
-    const messagesHTML = sortedMessages.map((msg, index) => {
+    sortedMessages.forEach((msg, index) => {
       const isOwn = msg.name === this.currentUser;
       const timestamp = new Date(msg.timestamp);
       const timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -246,22 +397,38 @@ class ChatManager {
       
       const showHeader = !prevMsg || prevMsg.name !== msg.name;
       
-      return `
-        <div class="chat-message ${isOwn ? 'own' : 'other'} ${showHeader ? 'first-in-group' : 'continuation'}">
-          ${showHeader ? `
-            <div class="message-header">
-              <span class="message-sender">${this.escapeHtml(msg.name)}</span>
-              <span class="message-time">${timeString}</span>
-            </div>
-          ` : ''}
-          <div class="message-content">
-            ${this.escapeHtml(msg.message)}
+      const messageElement = document.createElement('div');
+      messageElement.className = `chat-message ${isOwn ? 'own' : 'other'} ${showHeader ? 'first-in-group' : 'continuation'}${msg.replyTo ? ' replied-message' : ''}`;
+      
+      // Check if this message is a reply
+      const isReply = msg.replyTo;
+      
+      messageElement.innerHTML = `
+        ${showHeader ? `
+          <div class="message-header">
+            <span class="message-sender">${this.escapeHtml(msg.name)}</span>
+            <span class="message-time">${timeString}</span>
           </div>
+        ` : ''}
+        ${isReply ? `
+          <div class="reply-reference">
+            <div class="reply-to-name">${this.escapeHtml(msg.replyTo.name)}</div>
+            <div class="reply-to-message">${this.escapeHtml(msg.replyTo.message.substring(0, 50))}${msg.replyTo.message.length > 50 ? '...' : ''}</div>
+          </div>
+        ` : ''}
+        <div class="message-content">
+          ${this.escapeHtml(msg.message)}
+        </div>
+        <div class="swipe-indicator">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18m-9-9l9 9-9 9"/>
+          </svg>
         </div>
       `;
-    }).join('');
-    
-    this.messagesContainer.insertAdjacentHTML('beforeend', messagesHTML);
+      
+      this.messagesContainer.appendChild(messageElement);
+      this.setupSwipeHandlers(messageElement, msg);
+    });
   }
 
   startPolling() {
@@ -293,6 +460,200 @@ class ChatManager {
       "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, (m) => map[m]);
+  }
+
+  // Swipe to reply functionality
+  setupSwipeHandlers(messageElement, messageData) {
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let isDragging = false;
+    let hasMoved = false; // Track if user actually moved during drag
+    let threshold = 80; // Minimum swipe distance to trigger reply
+    let currentElement = null; // Track which element is being dragged
+
+    // Touch events for mobile
+    messageElement.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      currentX = startX;
+      currentY = startY;
+      isDragging = true;
+      hasMoved = false;
+      currentElement = messageElement;
+      messageElement.style.transition = 'none';
+    });
+
+    messageElement.addEventListener('touchmove', (e) => {
+      if (!isDragging || currentElement !== messageElement) return;
+      
+      const touch = e.touches[0];
+      currentX = touch.clientX;
+      currentY = touch.clientY;
+      
+      const deltaX = currentX - startX;
+      const deltaY = currentY - startY;
+      
+      // Mark that user has moved if they moved more than 5 pixels
+      if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        hasMoved = true;
+      }
+      
+      // Only allow horizontal swipe if it's more horizontal than vertical
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        e.preventDefault();
+        
+        // Only allow swipe in the correct direction based on message position
+        const isOwnMessage = messageData.name === this.currentUser;
+        const maxSwipe = isOwnMessage ? (deltaX < 0 ? Math.max(deltaX, -threshold) : 0) : 
+                                        (deltaX > 0 ? Math.min(deltaX, threshold) : 0);
+        
+        messageElement.style.transform = `translateX(${maxSwipe}px)`;
+        
+        // Add visual feedback when threshold is reached
+        if (Math.abs(maxSwipe) >= threshold * 0.8) {
+          messageElement.classList.add('swipe-ready');
+        } else {
+          messageElement.classList.remove('swipe-ready');
+        }
+      }
+    });
+
+    messageElement.addEventListener('touchend', (e) => {
+      if (!isDragging || currentElement !== messageElement) return;
+      
+      const deltaX = currentX - startX;
+      const isOwnMessage = messageData.name === this.currentUser;
+      const validSwipe = hasMoved && (isOwnMessage ? deltaX < -threshold : deltaX > threshold);
+      
+      messageElement.style.transition = 'transform 0.3s ease';
+      
+      if (validSwipe) {
+        this.startReply(messageData);
+      }
+      
+      messageElement.style.transform = '';
+      messageElement.classList.remove('swipe-ready');
+      isDragging = false;
+      hasMoved = false;
+      currentElement = null;
+    });
+
+    // Mouse events for desktop
+    let mouseEventHandlers = {
+      mousemove: null,
+      mouseup: null
+    };
+
+    messageElement.addEventListener('mousedown', (e) => {
+      // Only handle left mouse button
+      if (e.button !== 0) return;
+      
+      startX = e.clientX;
+      startY = e.clientY;
+      currentX = startX;
+      currentY = startY;
+      isDragging = true;
+      hasMoved = false;
+      currentElement = messageElement;
+      messageElement.style.transition = 'none';
+      e.preventDefault();
+
+      // Create mouse event handlers for this specific drag session
+      mouseEventHandlers.mousemove = (e) => {
+        if (!isDragging || currentElement !== messageElement) return;
+        
+        currentX = e.clientX;
+        currentY = e.clientY;
+        
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+        
+        // Mark that user has moved if they moved more than 5 pixels
+        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+          hasMoved = true;
+        }
+        
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+          const isOwnMessage = messageData.name === this.currentUser;
+          const maxSwipe = isOwnMessage ? (deltaX < 0 ? Math.max(deltaX, -threshold) : 0) : 
+                                          (deltaX > 0 ? Math.min(deltaX, threshold) : 0);
+          
+          messageElement.style.transform = `translateX(${maxSwipe}px)`;
+          
+          if (Math.abs(maxSwipe) >= threshold * 0.8) {
+            messageElement.classList.add('swipe-ready');
+          } else {
+            messageElement.classList.remove('swipe-ready');
+          }
+        }
+      };
+
+      mouseEventHandlers.mouseup = (e) => {
+        if (!isDragging || currentElement !== messageElement) return;
+        
+        const deltaX = currentX - startX;
+        const isOwnMessage = messageData.name === this.currentUser;
+        const validSwipe = hasMoved && (isOwnMessage ? deltaX < -threshold : deltaX > threshold);
+        
+        messageElement.style.transition = 'transform 0.3s ease';
+        
+        if (validSwipe) {
+          this.startReply(messageData);
+        }
+        
+        messageElement.style.transform = '';
+        messageElement.classList.remove('swipe-ready');
+        isDragging = false;
+        hasMoved = false;
+        currentElement = null;
+        
+        // Clean up event listeners
+        document.removeEventListener('mousemove', mouseEventHandlers.mousemove);
+        document.removeEventListener('mouseup', mouseEventHandlers.mouseup);
+      };
+
+      // Add temporary event listeners
+      document.addEventListener('mousemove', mouseEventHandlers.mousemove);
+      document.addEventListener('mouseup', mouseEventHandlers.mouseup);
+    });
+  }
+
+  startReply(messageData) {
+    this.replyingTo = messageData;
+    this.showReplyBar(messageData);
+    this.messageInput.focus();
+  }
+
+  showReplyBar(messageData) {
+    // Remove existing reply bar if any
+    const existingReplyBar = document.querySelector('.reply-bar');
+    if (existingReplyBar) {
+      existingReplyBar.remove();
+    }
+
+    const replyBar = document.createElement('div');
+    replyBar.className = 'reply-bar';
+    replyBar.innerHTML = `
+      <div class="reply-info">
+        <div class="reply-label">Replying to ${this.escapeHtml(messageData.name)}</div>
+        <div class="reply-message">${this.escapeHtml(messageData.message.substring(0, 50))}${messageData.message.length > 50 ? '...' : ''}</div>
+      </div>
+      <button class="reply-close" onclick="window.chatManager.cancelReply()">&times;</button>
+    `;
+
+    const inputContainer = document.querySelector('.chat-input-container');
+    inputContainer.insertBefore(replyBar, inputContainer.firstChild);
+  }
+
+  cancelReply() {
+    this.replyingTo = null;
+    const replyBar = document.querySelector('.reply-bar');
+    if (replyBar) {
+      replyBar.remove();
+    }
   }
 }
 
