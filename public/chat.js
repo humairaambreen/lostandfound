@@ -187,17 +187,23 @@ class ChatManager {
     // Sort messages by timestamp to ensure proper order (oldest first)
     const sortedMessages = [...messages].sort((a, b) => a.timestamp - b.timestamp);
 
-    const messagesHTML = sortedMessages.map(msg => {
+    const messagesHTML = sortedMessages.map((msg, index) => {
       const isOwn = msg.name === this.currentUser;
       const timestamp = new Date(msg.timestamp);
       const timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
+      // Check if this message is from the same sender as the previous one
+      const prevMsg = index > 0 ? sortedMessages[index - 1] : null;
+      const showHeader = !prevMsg || prevMsg.name !== msg.name;
+      
       return `
-        <div class="chat-message ${isOwn ? 'own' : 'other'}">
-          <div class="message-header">
-            <span class="message-sender">${this.escapeHtml(msg.name)}</span>
-            <span class="message-time">${timeString}</span>
-          </div>
+        <div class="chat-message ${isOwn ? 'own' : 'other'} ${showHeader ? 'first-in-group' : 'continuation'}">
+          ${showHeader ? `
+            <div class="message-header">
+              <span class="message-sender">${this.escapeHtml(msg.name)}</span>
+              <span class="message-time">${timeString}</span>
+            </div>
+          ` : ''}
           <div class="message-content">
             ${this.escapeHtml(msg.message)}
           </div>
@@ -219,17 +225,35 @@ class ChatManager {
     // Sort new messages by timestamp to ensure proper order (oldest first)
     const sortedMessages = [...newMessages].sort((a, b) => a.timestamp - b.timestamp);
     
-    const messagesHTML = sortedMessages.map(msg => {
+    // Get the last message currently displayed to check for grouping
+    const lastDisplayedMessage = this.messages.length > newMessages.length ? 
+      this.messages[this.messages.length - newMessages.length - 1] : null;
+    
+    const messagesHTML = sortedMessages.map((msg, index) => {
       const isOwn = msg.name === this.currentUser;
       const timestamp = new Date(msg.timestamp);
       const timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
+      // Check if this message is from the same sender as the previous one
+      let prevMsg;
+      if (index === 0) {
+        // First new message - check against last displayed message
+        prevMsg = lastDisplayedMessage;
+      } else {
+        // Check against previous new message
+        prevMsg = sortedMessages[index - 1];
+      }
+      
+      const showHeader = !prevMsg || prevMsg.name !== msg.name;
+      
       return `
-        <div class="chat-message ${isOwn ? 'own' : 'other'}">
-          <div class="message-header">
-            <span class="message-sender">${this.escapeHtml(msg.name)}</span>
-            <span class="message-time">${timeString}</span>
-          </div>
+        <div class="chat-message ${isOwn ? 'own' : 'other'} ${showHeader ? 'first-in-group' : 'continuation'}">
+          ${showHeader ? `
+            <div class="message-header">
+              <span class="message-sender">${this.escapeHtml(msg.name)}</span>
+              <span class="message-time">${timeString}</span>
+            </div>
+          ` : ''}
           <div class="message-content">
             ${this.escapeHtml(msg.message)}
           </div>
