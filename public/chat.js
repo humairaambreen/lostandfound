@@ -10,7 +10,6 @@ class ChatManager {
     this.leaveButton = document.getElementById('leaveChatBtn');
     this.namePrompt = document.getElementById('namePrompt');
     this.chatInterface = document.getElementById('chatInterface');
-    this.currentUserNameSpan = document.getElementById('currentUserName');
     this.messages = []; // Store messages locally to track changes
     
     this.init();
@@ -63,7 +62,6 @@ class ChatManager {
   joinChat(name) {
     this.currentUser = name;
     localStorage.setItem('chatUserName', name);
-    this.currentUserNameSpan.textContent = name;
     this.namePrompt.style.display = 'none';
     this.chatInterface.style.display = 'flex';
     this.loadMessages();
