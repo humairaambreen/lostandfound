@@ -788,6 +788,7 @@ button[type="submit"]:hover {
   margin: 0;
   border-top-left-radius: 1rem;
   border-top-right-radius: 1rem;
+  transition: all 0.3s ease;
 }
 
 .tab-btn {
@@ -945,6 +946,12 @@ button[type="submit"]:hover {
   margin: 0 !important;
   z-index: 1 !important;
   background: linear-gradient(135deg, #f8fffe 0%, #f0f8f0 100%) !important;
+  transition: bottom 0.3s ease !important;
+}
+
+/* Full screen when navigation is hidden */
+.chat-tab-fullscreen.nav-hidden {
+  bottom: 0 !important;
 }
 
 .chat-header-title {

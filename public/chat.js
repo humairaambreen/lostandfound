@@ -13,6 +13,8 @@ class ChatManager {
     this.chatHeaderMenu = document.getElementById('chatHeaderMenu');
     this.leaveChatMenuItem = document.getElementById('leaveChatMenuItem');
     this.clearChatMenuItem = document.getElementById('clearChatMenuItem');
+    this.toggleNavMenuItem = document.getElementById('toggleNavMenuItem');
+    this.navToggleText = document.getElementById('navToggleText');
     this.leaveChatModal = document.getElementById('leaveChatModal');
     this.cancelLeaveBtn = document.getElementById('cancelLeaveBtn');
     this.confirmLeaveBtn = document.getElementById('confirmLeaveBtn');
@@ -25,6 +27,7 @@ class ChatManager {
     this.replyingTo = null; // Store the message being replied to
     this.longPressTimer = null;
     this.isLongPressing = false;
+    this.isNavHidden = false; // Track navigation visibility state
     
     this.init();
   }
@@ -41,6 +44,7 @@ class ChatManager {
     this.setupHeaderLongPress();
     this.leaveChatMenuItem.addEventListener('click', () => this.handleLeaveChat());
     this.clearChatMenuItem.addEventListener('click', () => this.handleClearMessages());
+    this.toggleNavMenuItem.addEventListener('click', () => this.handleToggleNavigation());
     this.cancelLeaveBtn.addEventListener('click', () => this.hideLeaveChatModal());
     this.confirmLeaveBtn.addEventListener('click', () => this.confirmLeaveChat());
     
@@ -196,6 +200,44 @@ class ChatManager {
   handleLeaveChat() {
     this.hideHeaderMenu();
     this.showLeaveChatModal();
+  }
+  
+  handleToggleNavigation() {
+    this.hideHeaderMenu();
+    const bottomTabs = document.querySelector('.bottom-tabs');
+    const chatTab = document.getElementById('chatTab');
+    
+    if (this.isNavHidden) {
+      // Show navigation
+      bottomTabs.style.display = 'flex';
+      chatTab.classList.remove('nav-hidden');
+      this.navToggleText.textContent = 'Hide Navigation';
+      this.isNavHidden = false;
+      // Store preference for chat tab only
+      localStorage.setItem('chatNavHidden', 'false');
+    } else {
+      // Hide navigation
+      bottomTabs.style.display = 'none';
+      chatTab.classList.add('nav-hidden');
+      this.navToggleText.textContent = 'Show Navigation';
+      this.isNavHidden = true;
+      // Store preference for chat tab only
+      localStorage.setItem('chatNavHidden', 'true');
+    }
+  }
+  
+  // Method to restore navigation when leaving chat tab
+  restoreNavigation() {
+    const bottomTabs = document.querySelector('.bottom-tabs');
+    const chatTab = document.getElementById('chatTab');
+    
+    // Always show navigation when leaving chat
+    bottomTabs.style.display = 'flex';
+    chatTab.classList.remove('nav-hidden');
+    
+    // Reset the toggle state
+    this.isNavHidden = false;
+    this.navToggleText.textContent = 'Hide Navigation';
   }
   
   showLeaveChatModal() {
