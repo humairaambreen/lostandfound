@@ -603,28 +603,69 @@ async function loadRecentUploads() {
   }
 }
 
-// Delete a specific post
-async function deletePost(itemId) {
-  if (!confirm('Are you sure you want to delete this post?')) {
-    return;
-  }
+// Delete a specific post with custom modal
+let itemToDelete = null;
+
+function showDeleteConfirmation(itemId) {
+  itemToDelete = itemId;
+  document.getElementById('deleteConfirmationOverlay').style.display = 'block';
+}
+
+function hideDeleteConfirmation() {
+  itemToDelete = null;
+  document.getElementById('deleteConfirmationOverlay').style.display = 'none';
+}
+
+async function confirmDelete() {
+  if (!itemToDelete) return;
   
   try {
-    const response = await fetch(`/api/items/${itemId}`, {
+    const response = await fetch(`/api/items/${itemToDelete}`, {
       method: 'DELETE'
     });
     
     if (response.ok) {
       // Reload recent uploads to reflect the deletion
       loadRecentUploads();
-      alert('Post deleted successfully!');
+      hideDeleteConfirmation();
+      showSuccessMessage('Post deleted successfully!');
     } else {
-      alert('Failed to delete post. Please try again.');
+      showErrorMessage('Failed to delete post. Please try again.');
     }
   } catch (error) {
     console.error('Error deleting post:', error);
-    alert('Failed to delete post. Please try again.');
+    showErrorMessage('Failed to delete post. Please try again.');
   }
+}
+
+// For backwards compatibility - replace the old deletePost function
+function deletePost(itemId) {
+  showDeleteConfirmation(itemId);
+}
+
+// Success and error message functions
+function showSuccessMessage(message) {
+  // Create a temporary toast notification
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification success';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+function showErrorMessage(message) {
+  // Create a temporary toast notification
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification error';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }
 
 // View a specific post (switch to feeds tab)
@@ -662,4 +703,15 @@ function clearRecentUploads() {
 window.addEventListener('DOMContentLoaded', function() {
   autoFillUserInfo();
   loadRecentUploads();
+  
+  // Add event listeners for delete confirmation modal
+  document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+  document.getElementById('cancelDeleteBtn').addEventListener('click', hideDeleteConfirmation);
+  
+  // Close modal when clicking outside
+  document.getElementById('deleteConfirmationOverlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+      hideDeleteConfirmation();
+    }
+  });
 });
