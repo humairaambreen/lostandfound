@@ -86,6 +86,44 @@ app.get('/api/items', async (req, res) => {
   }
 });
 
+// API endpoint to get user's recent uploads
+// Get items by user name and number
+app.get('/api/items/user/:name/:number', (req, res) => {
+  const { name, number } = req.params;
+  
+  const itemsRef = admin.database().ref('items');
+  itemsRef.orderByChild('timestamp').once('value')
+    .then((snapshot) => {
+      const items = [];
+      snapshot.forEach((childSnapshot) => {
+        const item = childSnapshot.val();
+        if (item.name === name && item.number === number) {
+          items.unshift({ id: childSnapshot.key, ...item });
+        }
+      });
+      res.json(items);
+    })
+    .catch((error) => {
+      console.error('Error fetching user items:', error);
+      res.status(500).json({ error: 'Failed to fetch user items' });
+    });
+});
+
+// Delete a specific item
+app.delete('/api/items/:id', (req, res) => {
+  const itemId = req.params.id;
+  
+  const itemRef = admin.database().ref('items').child(itemId);
+  itemRef.remove()
+    .then(() => {
+      res.json({ success: true, message: 'Item deleted successfully' });
+    })
+    .catch((error) => {
+      console.error('Error deleting item:', error);
+      res.status(500).json({ error: 'Failed to delete item' });
+    });
+});
+
 // Like endpoint for items
 app.post('/api/items/:id/like', async (req, res) => {
   try {

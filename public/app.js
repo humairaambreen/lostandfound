@@ -120,8 +120,17 @@ form.addEventListener('submit', async (e) => {
         body: JSON.stringify({ name, number, description, photo: base64Photo })
       });
       if (!res.ok) throw new Error('Failed to upload');
+      
+      // Save user info to localStorage for recent uploads
+      localStorage.setItem('uploaderName', name);
+      localStorage.setItem('uploaderNumber', number);
+      
       form.reset();
       loadFeed();
+      
+      // Load recent uploads after successful submission
+      loadRecentUploads();
+      
     } catch (err) {
       console.error('Upload error:', err);
       alert('Error uploading item. Please try again.');
@@ -532,3 +541,125 @@ function applyDescriptionTruncation() {
     }
   });
 }
+
+// Recent Uploads Functionality
+async function loadRecentUploads() {
+  const uploaderName = localStorage.getItem('uploaderName');
+  const uploaderNumber = localStorage.getItem('uploaderNumber');
+  const recentUploadsSection = document.getElementById('recentUploadsSection');
+  const recentUploadsList = document.getElementById('recentUploadsList');
+  
+  if (!uploaderName || !uploaderNumber) {
+    recentUploadsSection.style.display = 'none';
+    return;
+  }
+  
+  try {
+    const res = await fetch(`/api/items/user/${encodeURIComponent(uploaderName)}/${encodeURIComponent(uploaderNumber)}`);
+    if (!res.ok) throw new Error('Failed to fetch user items');
+    
+    const userItems = await res.json();
+    
+    if (userItems.length === 0) {
+      recentUploadsSection.style.display = 'none';
+      return;
+    }
+    
+    recentUploadsSection.style.display = 'block';
+    
+    recentUploadsList.innerHTML = userItems.map(item => {
+      const date = item.timestamp ? new Date(item.timestamp).toLocaleString() : '';
+      const likeCount = item.likes || 0;
+      
+      return `
+        <div class="recent-upload-item" data-id="${item.id}">
+          <img src="${item.photo}" alt="Upload preview" class="recent-upload-image" />
+          <div class="recent-upload-details">
+            <div class="recent-upload-description">${item.description}</div>
+            <div class="recent-upload-timestamp">Uploaded: ${date}</div>
+            <div class="recent-upload-stats">
+              <span>${likeCount} likes</span>
+              <span>•</span>
+              <span onclick="viewPost('${item.id}')">View post</span>
+            </div>
+          </div>
+          <button class="delete-post-btn" onclick="deletePost('${item.id}')" title="Delete Post">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3,6 5,6 21,6"></polyline>
+              <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
+      `;
+    }).join('');
+    
+    // No longer need click handlers for the whole item since we have specific buttons
+    
+  } catch (err) {
+    console.error('Error loading recent uploads:', err);
+    recentUploadsSection.style.display = 'none';
+  }
+}
+
+// Delete a specific post
+async function deletePost(itemId) {
+  if (!confirm('Are you sure you want to delete this post?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/items/${itemId}`, {
+      method: 'DELETE'
+    });
+    
+    if (response.ok) {
+      // Reload recent uploads to reflect the deletion
+      loadRecentUploads();
+      alert('Post deleted successfully!');
+    } else {
+      alert('Failed to delete post. Please try again.');
+    }
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    alert('Failed to delete post. Please try again.');
+  }
+}
+
+// View a specific post (switch to feeds tab)
+function viewPost(itemId) {
+  // Switch to feeds tab
+  document.querySelectorAll('.tab-section').forEach(tab => tab.style.display = 'none');
+  document.getElementById('feedTab').style.display = '';
+  
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('feedsTabBtn').classList.add('active');
+}
+
+// Auto-fill name and number if previously used
+function autoFillUserInfo() {
+  const uploaderName = localStorage.getItem('uploaderName');
+  const uploaderNumber = localStorage.getItem('uploaderNumber');
+  
+  if (uploaderName) {
+    document.getElementById('name').value = uploaderName;
+  }
+  
+  if (uploaderNumber) {
+    document.getElementById('number').value = uploaderNumber;
+  }
+}
+
+// Clear recent uploads history
+function clearRecentUploads() {
+  localStorage.removeItem('uploaderName');
+  localStorage.removeItem('uploaderNumber');
+  document.getElementById('recentUploadsSection').style.display = 'none';
+}
+
+// Initialize recent uploads functionality when page loads
+window.addEventListener('DOMContentLoaded', function() {
+  autoFillUserInfo();
+  loadRecentUploads();
+});

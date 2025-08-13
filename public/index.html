@@ -196,6 +196,12 @@
         </div>
         <button type="submit">Submit Item</button>
       </form>
+      
+      <!-- Recent Uploads Section -->
+      <div id="recentUploadsSection" class="recent-uploads-section" style="display:none;">
+        <h3 class="recent-uploads-title">Your Recent Uploads</h3>
+        <div id="recentUploadsList" class="recent-uploads-list"></div>
+      </div>
     </div>
   </div>
   <nav class="bottom-tabs">
@@ -284,6 +290,11 @@
       aboutTab.style.display = 'none';
       feedTab.style.display = 'none';
       chatTab.style.display = 'none';
+      
+      // Load recent uploads when switching to upload tab
+      if (typeof loadRecentUploads === 'function') {
+        loadRecentUploads();
+      }
     };
   </script>
   
