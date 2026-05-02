@@ -91,3 +91,8 @@ lostandfound/
 - You can style the UI by editing `public/style.css`.
 - To add more fields or features, update both the backend API and frontend JS as needed.
 
+---
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
